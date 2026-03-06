@@ -1,14 +1,14 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-    </PropertyGroup>
+      <UserSecretsId>ac4047d8-bf2f-4e7e-be7b-a7d10f8595a4</UserSecretsId>
+  </PropertyGroup>
 
     <ItemGroup>
       <Folder Include="Hubs\" />
-      <Folder Include="Middleware\" />
     </ItemGroup>
 
     <ItemGroup>

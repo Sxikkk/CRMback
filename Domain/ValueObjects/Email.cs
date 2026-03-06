@@ -18,7 +18,7 @@ public record Email
 
     private static bool IsValidFormat(string input, out string trimmed)
     {
-        trimmed = null;
+        trimmed = null!;
 
         if (string.IsNullOrWhiteSpace(input))
             return false;

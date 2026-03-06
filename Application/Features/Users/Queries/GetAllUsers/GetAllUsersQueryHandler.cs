@@ -2,7 +2,7 @@
 using Domain.Interfaces.Repositories;
 using MediatR;
 
-namespace Application.Users.Queries.GetAllUsers;
+namespace Application.Features.Users.Queries.GetAllUsers;
 
 public class GetAllUsersQueryHandler: IRequestHandler<GetAllUsersQuery, List<UserDto>>
 {

@@ -1,5 +1,4 @@
-﻿using Application.Users.Queries.GetAllUsers;
-using Contracts.User;
+﻿using Application.Features.Users.Queries.GetAllUsers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,8 +15,8 @@ public class UserController: ControllerBase
         _mediator = mediator;
     }
     
-    [HttpGet]
-    public async Task<ActionResult<List<UserDto>>> GetUsers(CancellationToken cancellationToken)
+    [HttpGet("all")]
+    public async Task<IActionResult> GetUsers(CancellationToken cancellationToken)
     {
         var users = await _mediator.Send(new GetAllUsersQuery(), cancellationToken);
         return Ok(users);

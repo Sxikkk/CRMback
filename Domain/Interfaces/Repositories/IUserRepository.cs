@@ -9,7 +9,7 @@ public interface IUserRepository
     Task<User?> GetUserByEmailAndPasswordAsync(string email, string hashPassword);
     Task<User?> GetUserByUsernameAndPasswordAsync(string username, string hashPassword);
     Task<IEnumerable<User>> GetAllUsersAsync();
-    void AddUser(User user);
+    Task AddUserAsync(User user);
     void UpdateUser(User user);
     void DeleteUser(User user);
     Task SaveAsync();
