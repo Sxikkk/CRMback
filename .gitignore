@@ -1,0 +1,55 @@
+# .NET / C#
+bin/
+obj/
+*.csproj.user
+*.user
+*.suo
+*.userprefs
+*.sln.docstates
+*.cache
+*.vs/
+.vscode/
+.idea/
+*.iml
+_ReSharper.*
+_ReSharper.*
+*.resharper
+*.suo
+*.user
+
+Infrastructure/Migrations
+
+# NuGet
+packages/
+*.nupkg
+*.snk
+
+# Rider / JetBrains
+.idea/
+*.iml
+riderModule.iml
+_ReSharper.Caches/
+*.resharper.user
+
+# Тесты / coverage
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+*.opencover.xml
+
+# Логи и временные файлы
+*.log
+*.tmp
+*.cache
+
+# БД / миграции (если локально)
+*.mdf
+*.ldf
+*.sqlite
+*.sqlite3
+
+# Секреты и окружение
+appsettings.*.json
+*.secrets
+.env
