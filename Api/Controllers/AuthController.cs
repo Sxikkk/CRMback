@@ -1,12 +1,14 @@
 ﻿using Application.Features.Auth.Commands.Login;
+using Application.Features.Auth.Commands.Refresh;
 using Application.Features.Auth.Commands.Register;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
 [ApiController]
-[Route("api/users")]
+[Route("api/auth")]
 public class AuthController: ControllerBase
 {
     private readonly IMediator _mediator;
@@ -16,6 +18,7 @@ public class AuthController: ControllerBase
         _mediator = mediator;
     }
 
+    [AllowAnonymous]
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginCommand request, CancellationToken cancellationToken = default)
     {
@@ -23,8 +26,17 @@ public class AuthController: ControllerBase
         return Ok(response);
     }
 
+    [AllowAnonymous]
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterCommand request, CancellationToken cancellationToken = default)
+    {
+        var response = await _mediator.Send(request, cancellationToken);
+        return Ok(response);
+    }
+    
+    [Authorize]
+    [HttpPost("refresh")]
+    public async Task<IActionResult> Refresh(RefreshCommand request, CancellationToken cancellationToken = default)
     {
         var response = await _mediator.Send(request, cancellationToken);
         return Ok(response);

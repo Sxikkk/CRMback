@@ -12,7 +12,7 @@ public class User
     public Phone Phone { get; private set; }
     public string UserName { get; private set; }
     public string PasswordHash { get; private set; }
-
+    public ICollection<RefreshToken> RefreshTokens { get; private set; }
     private User() { }
 
     public static User Create(
@@ -36,7 +36,8 @@ public class User
             Email = email,
             Phone = phone,
             UserName = userName.Trim(),
-            PasswordHash = passwordHash
+            PasswordHash = passwordHash,
+            RefreshTokens =  new List<RefreshToken>(),
         };
     }
 

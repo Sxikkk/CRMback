@@ -14,25 +14,30 @@ public class UserRepository : IUserRepository
         _context = context;
     }
     
-    public async Task<User?> GetUserByEmailAsync(string email) =>
-        await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+    public async Task<User?> GetUserByEmailAsync(string email, CancellationToken cancellationToken) =>
+        await _context.Users.FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
 
-    public async Task<User?> GetUserByUsernameAsync(string username) =>
-        await _context.Users.FirstOrDefaultAsync(u => u.UserName == username);
+    public async Task<User?> GetUserByIdAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        return await _context.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+    }
 
-    public async Task<User?> GetUserByEmailAndPasswordAsync(string email, string hashPassword) =>
-        await _context.Users.FirstOrDefaultAsync(u => u.Email == email && u.PasswordHash == hashPassword);
+    public async Task<User?> GetUserByUsernameAsync(string username, CancellationToken cancellationToken) =>
+        await _context.Users.FirstOrDefaultAsync(u => u.UserName == username, cancellationToken);
 
-    public async Task<User?> GetUserByUsernameAndPasswordAsync(string username, string hashPassword) =>
-        await _context.Users.FirstOrDefaultAsync(u => u.UserName == username && u.PasswordHash == hashPassword);
+    public async Task<User?> GetUserByEmailAndPasswordAsync(string email, string hashPassword, CancellationToken cancellationToken) =>
+        await _context.Users.FirstOrDefaultAsync(u => u.Email == email && u.PasswordHash == hashPassword, cancellationToken);
 
-    public async Task<IEnumerable<User>> GetAllUsersAsync() => await _context.Users.ToListAsync();
+    public async Task<User?> GetUserByUsernameAndPasswordAsync(string username, string hashPassword, CancellationToken cancellationToken) =>
+        await _context.Users.FirstOrDefaultAsync(u => u.UserName == username && u.PasswordHash == hashPassword, cancellationToken);
 
-    public async Task AddUserAsync(User user) => await _context.Users.AddAsync(user);
+    public async Task<IEnumerable<User>> GetAllUsersAsync(CancellationToken cancellationToken) => await _context.Users.ToListAsync(cancellationToken: cancellationToken);
+
+    public async Task AddUserAsync(User user, CancellationToken cancellationToken) => await _context.Users.AddAsync(user, cancellationToken);
 
     public void UpdateUser(User user) => _context.Users.Update(user);
 
     public void DeleteUser(User user) => _context.Users.Remove(user);
 
-    public async Task SaveAsync() => await _context.SaveChangesAsync();
+    public async Task SaveAsync(CancellationToken cancellationToken) => await _context.SaveChangesAsync(cancellationToken);
 }

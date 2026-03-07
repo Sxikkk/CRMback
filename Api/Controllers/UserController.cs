@@ -1,5 +1,6 @@
 ﻿using Application.Features.Users.Queries.GetAllUsers;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
@@ -15,6 +16,7 @@ public class UserController: ControllerBase
         _mediator = mediator;
     }
     
+    [Authorize]
     [HttpGet("all")]
     public async Task<IActionResult> GetUsers(CancellationToken cancellationToken)
     {

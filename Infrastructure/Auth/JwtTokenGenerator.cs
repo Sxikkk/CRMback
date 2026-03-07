@@ -1,7 +1,10 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Application.Common.Options;
+using Contracts.Auth;
+using Domain.Entities;
 using Domain.Interfaces.Security;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -40,5 +43,32 @@ public class JwtTokenGenerator: IJwtTokenGenerator
         );
         
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+    
+    public string GenerateRefreshToken()
+    {
+        var bytes = RandomNumberGenerator.GetBytes(64);
+        var rawToken = Convert.ToBase64String(bytes);
+        return rawToken;
+    }
+
+    public string HashToken(string token)
+    {
+        var bytes = Encoding.UTF8.GetBytes(token);
+
+        var hash = SHA256.HashData(bytes);
+
+        return Convert.ToHexString(hash);
+    }
+
+    public (string accessToken, string refreshToken, TimeSpan refreshExpires) GenerateTokens(Guid userId, string username)
+    {
+        var accessToken = GenerateToken(userId, username);
+
+        var rawRefresh = GenerateRefreshToken();
+
+        var refreshExpires = TimeSpan.FromDays(_options.ExpirationDays);
+
+        return (accessToken, rawRefresh, refreshExpires);
     }
 }

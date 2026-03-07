@@ -1,4 +1,5 @@
-﻿using Contracts.Auth;
+﻿using Application.Common.Interfaces;
+using Contracts.Auth;
 using Domain.Entities;
 using Domain.Interfaces.Repositories;
 using Domain.Interfaces.Security;
@@ -7,24 +8,29 @@ using MediatR;
 
 namespace Application.Features.Auth.Commands.Register;
 
-public class RegisterCommandHandler: IRequestHandler<RegisterCommand, TokenDto>
+public class RegisterCommandHandler : IRequestHandler<RegisterCommand, TokenDto>
 {
     private readonly IUserRepository _userRepository;
+    private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
+    private readonly IRequestContext _requestContext;
 
-    public RegisterCommandHandler(IUserRepository userRepository, IJwtTokenGenerator jwtTokenGenerator)
+    public RegisterCommandHandler(IUserRepository userRepository, IJwtTokenGenerator jwtTokenGenerator,
+        IRefreshTokenRepository refreshTokenRepository, IRequestContext requestContext)
     {
         _userRepository = userRepository;
         _jwtTokenGenerator = jwtTokenGenerator;
+        _refreshTokenRepository = refreshTokenRepository;
+        _requestContext = requestContext;
     }
 
     public async Task<TokenDto> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
-        var existUser = await _userRepository.GetUserByEmailAsync(request.Email);
+        var existUser = await _userRepository.GetUserByEmailAsync(request.Email, cancellationToken);
 
         if (existUser is not null)
             throw new ApplicationException("User already exists");
-        
+
         var email = Email.Create(request.Email);
 
         var phone = Phone.Create(request.Phone);
@@ -41,11 +47,27 @@ public class RegisterCommandHandler: IRequestHandler<RegisterCommand, TokenDto>
             passwordHash
         );
 
-        await _userRepository.AddUserAsync(user);
-        await _userRepository.SaveAsync();
+        var tokens = _jwtTokenGenerator.GenerateTokens(user.Id, user.UserName);
 
-        var token = _jwtTokenGenerator.GenerateToken(user.Id, user.UserName);
+        var hashRefreshToken = _jwtTokenGenerator.HashToken(tokens.refreshToken);
+
+        var ip = _requestContext.IpAddress;
         
-        return new TokenDto(token);
+        var refreshToken = RefreshToken.Create(
+            user.Id,
+            hashRefreshToken,
+            tokens.refreshExpires,
+            ip
+        );
+
+        await _userRepository.AddUserAsync(user, cancellationToken);
+        await _refreshTokenRepository.AddTokenAsync(refreshToken, cancellationToken);
+        await _userRepository.SaveAsync(cancellationToken);
+
+        return new TokenDto
+        {
+            AccessToken = tokens.accessToken,
+            RefreshToken = tokens.refreshToken,
+        };
     }
 }

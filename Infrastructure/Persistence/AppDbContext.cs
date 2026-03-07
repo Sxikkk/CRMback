@@ -8,8 +8,9 @@ namespace Infrastructure.Persistence;
 public sealed class AppDbContext : DbContext
 {
     public DbSet<User> Users => Set<User>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
-    public static readonly ILoggerFactory LoggerFactoryConsole =
+    private static readonly ILoggerFactory LoggerFactoryConsole =
         LoggerFactory.Create(builder =>
         {
             builder
@@ -24,18 +25,20 @@ public sealed class AppDbContext : DbContext
             ? "✅ PostgreSQL подключена успешно"
             : "❌ Не удалось подключиться к PostgreSQL");
     }
-    
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder
-            .UseLoggerFactory(LoggerFactoryConsole)
-            .EnableSensitiveDataLogging();
+        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+        {
+            optionsBuilder.UseLoggerFactory(LoggerFactoryConsole)
+                .EnableSensitiveDataLogging();
+        }
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
-        
+
         base.OnModelCreating(modelBuilder);
     }
 }
