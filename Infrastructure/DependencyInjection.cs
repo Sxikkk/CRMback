@@ -3,6 +3,7 @@ using Domain.Interfaces.Repositories;
 using Domain.Interfaces.Security;
 using Infrastructure.Auth;
 using Infrastructure.Persistence;
+using Infrastructure.Persistence.Common;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -25,8 +26,10 @@ public static class DependencyInjection
             options.UseNpgsql(connectionString, o => o.MigrationsAssembly("Infrastructure"));
         });
         
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+        services.AddScoped<IEssenceRepository, EssenceRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         
         return services;

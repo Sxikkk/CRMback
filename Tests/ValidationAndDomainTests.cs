@@ -1,5 +1,5 @@
 using Application.Features.Auth.Commands.Register;
-using Application.Features.Auth.Commands.Validators;
+using Application.Features.Auth.Validators;
 using Domain.Entities;
 using Domain.Exceptions;
 using Domain.ValueObjects;

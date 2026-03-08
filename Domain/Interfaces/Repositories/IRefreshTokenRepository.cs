@@ -12,5 +12,4 @@ public interface IRefreshTokenRepository
     void UpdateToken(RefreshToken token);
     void RemoveToken(RefreshToken token);
     Task RemoveTokensByUserIdAsync(Guid userId, CancellationToken cancellationToken);
-    Task SaveChangesAsync(CancellationToken cancellationToken);
 }

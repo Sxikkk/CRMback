@@ -13,14 +13,16 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, TokenDto>
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
     private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly IRequestContext _requestContext;
+    private readonly IUnitOfWork _unitOfWork;
 
     public LoginCommandHandler(IUserRepository userRepository, IJwtTokenGenerator jwtTokenGenerator,
-        IRequestContext requestContext, IRefreshTokenRepository refreshTokenRepository)
+        IRequestContext requestContext, IRefreshTokenRepository refreshTokenRepository, IUnitOfWork unitOfWork)
     {
         _userRepository = userRepository;
         _jwtTokenGenerator = jwtTokenGenerator;
         _requestContext = requestContext;
         _refreshTokenRepository = refreshTokenRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<TokenDto> Handle(LoginCommand request, CancellationToken cancellationToken)
@@ -44,7 +46,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, TokenDto>
         );
 
         await _refreshTokenRepository.AddTokenAsync(refreshToken, cancellationToken);
-        await _userRepository.SaveAsync(cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new TokenDto
         {

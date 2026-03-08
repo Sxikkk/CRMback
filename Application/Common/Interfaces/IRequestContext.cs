@@ -3,4 +3,7 @@
 public interface IRequestContext
 {
     string IpAddress { get; }
+    Guid? UserId { get; }
+    string? Username { get; }
+    
 }

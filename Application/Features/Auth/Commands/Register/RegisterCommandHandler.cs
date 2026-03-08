@@ -14,14 +14,16 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, TokenDto>
     private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
     private readonly IRequestContext _requestContext;
+    private readonly IUnitOfWork _unitOfWork;
 
     public RegisterCommandHandler(IUserRepository userRepository, IJwtTokenGenerator jwtTokenGenerator,
-        IRefreshTokenRepository refreshTokenRepository, IRequestContext requestContext)
+        IRefreshTokenRepository refreshTokenRepository, IRequestContext requestContext, IUnitOfWork unitOfWork)
     {
         _userRepository = userRepository;
         _jwtTokenGenerator = jwtTokenGenerator;
         _refreshTokenRepository = refreshTokenRepository;
         _requestContext = requestContext;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<TokenDto> Handle(RegisterCommand request, CancellationToken cancellationToken)
@@ -62,7 +64,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, TokenDto>
 
         await _userRepository.AddUserAsync(user, cancellationToken);
         await _refreshTokenRepository.AddTokenAsync(refreshToken, cancellationToken);
-        await _userRepository.SaveAsync(cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new TokenDto
         {

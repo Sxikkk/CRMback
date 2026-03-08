@@ -11,15 +11,17 @@ public class RefreshCommandHandler : IRequestHandler<RefreshCommand, TokenDto>
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
     private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly IUserRepository _userRepository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IRequestContext _requestContext;
 
     public RefreshCommandHandler(IJwtTokenGenerator jwtTokenGenerator, IRefreshTokenRepository refreshTokenRepository,
-        IRequestContext requestContext, IUserRepository userRepository)
+        IRequestContext requestContext, IUserRepository userRepository, IUnitOfWork unitOfWork)
     {
         _jwtTokenGenerator = jwtTokenGenerator;
         _refreshTokenRepository = refreshTokenRepository;
         _requestContext = requestContext;
         _userRepository = userRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<TokenDto> Handle(RefreshCommand request, CancellationToken cancellationToken)
@@ -39,7 +41,7 @@ public class RefreshCommandHandler : IRequestHandler<RefreshCommand, TokenDto>
         if (activeToken.ExpiresAtUtc <= DateTime.UtcNow)
         {
             activeToken.Revoke(ipAddress);
-            await _refreshTokenRepository.SaveChangesAsync(cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
             throw new UnauthorizedAccessException("Token revoked");
         }
 
@@ -61,7 +63,7 @@ public class RefreshCommandHandler : IRequestHandler<RefreshCommand, TokenDto>
         var newToken = activeToken.Rotate(newHashedToken, tokens.refreshExpires, ipAddress);
         
         await _refreshTokenRepository.AddTokenAsync(newToken, cancellationToken);
-        await _refreshTokenRepository.SaveChangesAsync(cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
         
         return new TokenDto
         {

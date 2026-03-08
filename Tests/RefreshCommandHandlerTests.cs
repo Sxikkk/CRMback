@@ -7,7 +7,6 @@ using Domain.Interfaces.Security;
 using Domain.ValueObjects;
 using FluentAssertions;
 using Moq;
-using Xunit;
 
 namespace Tests;
 
@@ -44,11 +43,13 @@ public class RefreshCommandHandlerTests
         var userRepo = new Mock<IUserRepository>();
         userRepo.Setup(r => r.GetUserByIdAsync(userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
+        
+        var uowRepo = new Mock<IUnitOfWork>();
 
         var ctx = new Mock<IRequestContext>();
         ctx.SetupGet(c => c.IpAddress).Returns(Ip);
 
-        var handler = new RefreshCommandHandler(jwt.Object, refreshRepo.Object, ctx.Object, userRepo.Object);
+        var handler = new RefreshCommandHandler(jwt.Object, refreshRepo.Object, ctx.Object, userRepo.Object, uowRepo.Object);
 
         // Act
         var result = await handler.Handle(new RefreshCommand { Token = incomingRaw }, CancellationToken.None);
@@ -63,7 +64,7 @@ public class RefreshCommandHandlerTests
         refreshRepo.Verify(r => r.AddTokenAsync(
             It.Is<RefreshToken>(t => t.TokenHash == newHash && t.UserId == userId),
             It.IsAny<CancellationToken>()), Times.Once);
-        refreshRepo.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        refreshRepo.Verify(r => uowRepo.Object.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -85,12 +86,13 @@ public class RefreshCommandHandlerTests
         var userRepo = new Mock<IUserRepository>();
         var ctx = new Mock<IRequestContext>();
         ctx.SetupGet(c => c.IpAddress).Returns(Ip);
+        var uowRepo = new Mock<IUnitOfWork>();
 
-        var handler = new RefreshCommandHandler(jwt.Object, refreshRepo.Object, ctx.Object, userRepo.Object);
+        var handler = new RefreshCommandHandler(jwt.Object, refreshRepo.Object, ctx.Object, userRepo.Object, uowRepo.Object);
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
             handler.Handle(new RefreshCommand { Token = incomingRaw }, CancellationToken.None));
 
-        refreshRepo.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        refreshRepo.Verify(r => uowRepo.Object.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }
