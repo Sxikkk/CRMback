@@ -1,4 +1,5 @@
-﻿using Domain.Exceptions;
+﻿using Domain.Enums;
+using Domain.Exceptions;
 using Domain.ValueObjects;
 
 namespace Domain.Entities;
@@ -12,7 +13,8 @@ public class User
     public Phone Phone { get; private set; }
     public string UserName { get; private set; }
     public string PasswordHash { get; private set; }
-    public ICollection<RefreshToken> RefreshTokens { get; private set; }
+    public ERole Role { get; private set; }
+    public ICollection<RefreshToken> RefreshTokens { get; private set; } = null!;
     private User() { }
 
     public static User Create(
@@ -38,6 +40,7 @@ public class User
             UserName = userName.Trim(),
             PasswordHash = passwordHash,
             RefreshTokens =  new List<RefreshToken>(),
+            Role = ERole.User,
         };
     }
 
@@ -47,6 +50,11 @@ public class User
         Name = name.Trim();
     }
 
+    public void ChangeRole(ERole role)
+    {
+        Role = role;
+    }
+    
     public void ChangeUserName(string userName)
     {
         if (string.IsNullOrWhiteSpace(userName)) throw new DomainException("Username cannot be empty");

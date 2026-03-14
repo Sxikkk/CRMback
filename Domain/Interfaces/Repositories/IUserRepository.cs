@@ -11,6 +11,8 @@ public interface IUserRepository
     Task<User?> GetUserByUsernameAndPasswordAsync(string username, string hashPassword, CancellationToken cancellationToken);
     Task<IEnumerable<User>> GetAllUsersAsync(CancellationToken cancellationToken);
     Task AddUserAsync(User user, CancellationToken cancellationToken);
+    Task<bool> IsExistByIdAsync(Guid userId, CancellationToken cancellationToken);
+    Task<bool> IsExistByUsernameAsync(string username, CancellationToken cancellationToken);
     void UpdateUser(User user);
     void DeleteUser(User user);
 }

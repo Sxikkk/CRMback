@@ -55,6 +55,11 @@ public class Essence
     {
         Priority = priority;
     }
+    
+    public void ChangeStatus(EEssenceStatus status)
+    {
+        Status = status;
+    }
 
     public void Start()
     {

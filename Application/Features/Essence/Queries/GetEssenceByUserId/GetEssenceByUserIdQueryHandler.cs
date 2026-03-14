@@ -3,7 +3,7 @@ using Contracts.Tasks;
 using Domain.Interfaces.Repositories;
 using MediatR;
 
-namespace Application.Features.Essence.Queries;
+namespace Application.Features.Essence.Queries.GetEssenceByUserId;
 
 public class GetEssenceByUserIdQueryHandler : IRequestHandler<GetEssenceByUserIdQuery, IReadOnlyList<EssenceDto>>
 {

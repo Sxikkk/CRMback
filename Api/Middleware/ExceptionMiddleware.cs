@@ -1,6 +1,8 @@
 ﻿using System.Net;
 using System.Text.Json;
+using Application.Common.Exceptions;
 using Domain.Exceptions;
+using ApplicationException = System.ApplicationException;
 
 namespace Api.Middleware;
 
@@ -35,6 +37,10 @@ public sealed class ExceptionMiddleware
         {
             await HandleException(context, ex, HttpStatusCode.Unauthorized);
         }
+        catch (AccessDeniedException ex)
+        {
+            await HandleException(context, ex, HttpStatusCode.Forbidden);
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unhandled exception");
@@ -59,6 +65,7 @@ public sealed class ExceptionMiddleware
             error = exception.Message,
             status = context.Response.StatusCode,
             code = GetINextCode(exception.Message),
+            type = exception.GetType().Name
         };
 
         await context.Response.WriteAsync(

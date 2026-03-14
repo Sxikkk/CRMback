@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Application.Common.Interfaces;
+using Domain.Enums;
 
 namespace Api.Services;
 

@@ -9,6 +9,16 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("allowAll", policy =>
+        policy
+            .SetIsOriginAllowed(_ => true)
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials());
+});
+
 builder.Services.AddApplication();
 builder.Services.AddPresentation();
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -16,12 +26,13 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<IRequestContext, RequestContext>();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers();    
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSignalR();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+app.UseCors("allowAll");
 
 app.UseGlobalExceptionHandler();
 
@@ -33,6 +44,7 @@ if (app.Environment.IsDevelopment())
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.Migrate();
 }
+
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
