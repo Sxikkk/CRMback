@@ -34,7 +34,7 @@ public class AuthController: ControllerBase
         return Ok(response);
     }
     
-    [Authorize]
+    [AllowAnonymous]
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh(RefreshCommand request, CancellationToken cancellationToken = default)
     {
