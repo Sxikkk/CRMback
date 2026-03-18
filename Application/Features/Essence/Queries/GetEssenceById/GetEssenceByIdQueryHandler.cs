@@ -1,5 +1,6 @@
 ﻿
 using Contracts.Tasks;
+using Contracts.User;
 using Domain.Interfaces.Repositories;
 using MediatR;
 
@@ -8,10 +9,12 @@ namespace Application.Features.Essence.Queries.GetEssenceById;
 public class GetEssenceByIdQueryHandler: IRequestHandler<GetEssenceByIdQuery, EssenceDto>
 {
     private readonly IEssenceRepository _essenceRepository;
+    private readonly IUserRepository _userRepository;
 
-    public GetEssenceByIdQueryHandler(IEssenceRepository essenceRepository)
+    public GetEssenceByIdQueryHandler(IEssenceRepository essenceRepository, IUserRepository userRepository)
     {
         _essenceRepository = essenceRepository;
+        _userRepository = userRepository;
     }
 
     public async Task<EssenceDto> Handle(GetEssenceByIdQuery request, CancellationToken cancellationToken)
@@ -20,6 +23,28 @@ public class GetEssenceByIdQueryHandler: IRequestHandler<GetEssenceByIdQuery, Es
 
         if (essence is null)
             throw new ApplicationException("Essence not found");
+        
+        var rawCreator = await _userRepository.GetUserByIdAsync(essence.CreatedById, cancellationToken);
+        var creator = new UserDto
+        {
+            Id = rawCreator!.Id,
+            Email = rawCreator.Email,
+            Name = rawCreator.Name,
+            Phone = rawCreator.Phone,
+            Surname = rawCreator.Surname,
+            UserName = rawCreator.UserName,
+        };
+          
+        var rawExecutor = await _userRepository.GetUserByIdAsync(essence.CreatedById, cancellationToken);
+        var executor = new UserDto
+        {
+            Id = rawExecutor!.Id,
+            Email = rawExecutor.Email,
+            Name = rawExecutor.Name,
+            Phone = rawExecutor.Phone,
+            Surname = rawExecutor.Surname,
+            UserName = rawExecutor.UserName,
+        };
         
         return new EssenceDto{
             Id = essence.Id,
@@ -32,7 +57,9 @@ public class GetEssenceByIdQueryHandler: IRequestHandler<GetEssenceByIdQuery, Es
             DueDate = essence.DueDate,
             AssignedToId = essence.AssignedToId,
             CompletedAtUtc = essence.CompletedAtUtc,
-            TimeTracked = essence.TimeTracked,
+            TimeTracked = essence.GetCurrentTrackedTime(),
+            Creator = creator,
+            Executor = executor,
         };
     }
 }

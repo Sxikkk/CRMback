@@ -1,4 +1,5 @@
-﻿using Domain.Enums;
+﻿using Contracts.User;
+using Domain.Enums;
 
 namespace Contracts.Tasks;
 
@@ -25,4 +26,6 @@ public class EssenceDto
     public DateTime? CompletedAtUtc { get; set; }
 
     public TimeSpan TimeTracked { get; set; }
+    public UserDto Creator { get; set; }
+    public UserDto? Executor { get; set; }
 }

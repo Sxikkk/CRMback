@@ -63,11 +63,15 @@ public class Essence
 
     public void Start()
     {
+        if (Status == EEssenceStatus.InProgress)
+            return;
+        
         if (Status != EEssenceStatus.Waiting && Status != EEssenceStatus.Paused)
-            throw new DomainException("Can only start from Waiting or Paused");
+            throw new DomainException("Можно начинать только из Waiting или Paused");
 
         Status = EEssenceStatus.InProgress;
         _lastStartUtc = DateTime.UtcNow;
+        
     }
 
     public void Pause()
@@ -89,7 +93,9 @@ public class Essence
         if (Status == EEssenceStatus.Completed)
             return;
 
-        Pause();
+        if (Status == EEssenceStatus.InProgress)
+            Pause();
+
         Status = EEssenceStatus.Completed;
         CompletedAtUtc = DateTime.UtcNow;
     }
@@ -114,5 +120,15 @@ public class Essence
     public void UpdateDescription(string? description)
     {
         Description = description?.Trim();
+    }
+    
+    public TimeSpan GetCurrentTrackedTime()
+    {
+        var total = TimeTracked;
+        if (Status == EEssenceStatus.InProgress && _lastStartUtc.HasValue)
+        {
+            total += DateTime.UtcNow - _lastStartUtc.Value;
+        }
+        return total;
     }
 }
