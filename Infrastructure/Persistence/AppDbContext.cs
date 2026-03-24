@@ -10,6 +10,7 @@ public sealed class AppDbContext : DbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<Essence> Essences => Set<Essence>();
+    public DbSet<Organization> Organizations => Set<Organization>();
 
     private static readonly ILoggerFactory LoggerFactoryConsole =
         LoggerFactory.Create(builder =>

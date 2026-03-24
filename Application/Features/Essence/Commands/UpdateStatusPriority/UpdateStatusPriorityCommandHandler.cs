@@ -22,9 +22,6 @@ public class UpdateStatusPriorityCommandHandler: IRequestHandler<UpdateStatusPri
         if (existingEssence is null)
             throw new ApplicationException("Essence not found");
 
-        if (request.Status is not null)
-            existingEssence.ChangeStatus((EEssenceStatus)request.Status);
-
         if (request.Priority is not null)
             existingEssence.ChangePriority((EEssencePriority)request.Priority);
         

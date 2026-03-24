@@ -57,7 +57,7 @@ public class GetEssenceByIdQueryHandler: IRequestHandler<GetEssenceByIdQuery, Es
             DueDate = essence.DueDate,
             AssignedToId = essence.AssignedToId,
             CompletedAtUtc = essence.CompletedAtUtc,
-            TimeTracked = essence.GetCurrentTrackedTime(),
+            TimeTracked = essence.TotalTime,
             Creator = creator,
             Executor = executor,
         };

@@ -15,6 +15,8 @@ public class User
     public string PasswordHash { get; private set; }
     public ERole Role { get; private set; }
     public ICollection<RefreshToken> RefreshTokens { get; private set; } = null!;
+    public Guid? OrganizationId { get; private set; }
+    public Organization? Organization { get; private set; }
     private User() { }
 
     public static User Create(
@@ -74,5 +76,10 @@ public class User
     public void ChangeEmail(Email newEmail)
     {
         Email = newEmail ?? throw new ArgumentNullException(nameof(newEmail));
+    }
+    
+    public void AssignToOrganization(Guid organizationId)
+    {
+        OrganizationId = organizationId;
     }
 }

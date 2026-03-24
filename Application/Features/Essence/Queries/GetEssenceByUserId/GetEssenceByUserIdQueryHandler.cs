@@ -76,7 +76,7 @@ public class GetEssenceByUserIdQueryHandler : IRequestHandler<GetEssenceByUserId
             DueDate = essence.DueDate,
             AssignedToId = essence.AssignedToId,
             CompletedAtUtc = essence.CompletedAtUtc,
-            TimeTracked = essence.GetCurrentTrackedTime(),
+            TimeTracked = essence.TotalTime,
             Creator = creator,
             Executor = essence.AssignedToId.HasValue && executors.TryGetValue(essence.AssignedToId.Value, out var executor)
                 ? executor

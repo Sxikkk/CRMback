@@ -27,7 +27,6 @@ public class CreateEssenceCommandHandler : IRequestHandler<CreateEssenceCommand,
             throw new ApplicationException("User not found");
 
         var essence = Domain.Entities.Essence.Create(request.Title, (Guid)_requestContext.UserId);
-        essence.Start();
         await _repository.AddAsync(essence, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
         var rawCreator = await _userRepository.GetUserByIdAsync(essence.CreatedById, cancellationToken);
@@ -64,7 +63,7 @@ public class CreateEssenceCommandHandler : IRequestHandler<CreateEssenceCommand,
             DueDate = essence.DueDate,
             AssignedToId = essence.AssignedToId,
             CompletedAtUtc = essence.CompletedAtUtc,
-            TimeTracked = essence.GetCurrentTrackedTime(),
+            TimeTracked = essence.TotalTime,
             Creator = creator,
             Executor = executor,
         };

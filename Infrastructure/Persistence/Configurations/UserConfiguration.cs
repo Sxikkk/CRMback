@@ -25,7 +25,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(u => u.Id).IsUnique();
         builder.HasIndex(u => u.Email).IsUnique();
         builder.HasIndex(u => u.UserName).IsUnique();
-        
+
         builder.Property(u => u.Email)
             .HasConversion(emailConverter)
             .HasMaxLength(256)
@@ -50,11 +50,17 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.Surname)
             .HasMaxLength(50)
             .IsRequired();
-        
+
         builder
             .HasMany(u => u.RefreshTokens)
             .WithOne(t => t.User)
             .HasForeignKey(t => t.UserId)
             .OnDelete(DeleteBehavior.Cascade);
-        }
+
+        builder
+            .HasOne(u => u.Organization)
+            .WithMany()
+            .HasForeignKey(u => u.OrganizationId)
+            .OnDelete(DeleteBehavior.SetNull);
+    }
 }

@@ -1,5 +1,6 @@
 ﻿using Domain.Enums;
 using Domain.Exceptions;
+using Domain.ValueObjects;
 
 namespace Domain.Entities;
 
@@ -9,15 +10,23 @@ public class Essence
     public string Title { get; private set; } = string.Empty;
     public string? Description { get; private set; }
     public EEssencePriority Priority { get; private set; }
-    public EEssenceStatus Status { get; private set; }
+
+    public EEssenceStatus Status => CalculateOverallStatus();
+
     public Guid CreatedById { get; private set; }
     public Guid? AssignedToId { get; private set; }
     public DateTime? DueDate { get; private set; }
     public DateTime CreatedAtUtc { get; private init; }
     public DateTime? CompletedAtUtc { get; private set; }
-    public TimeSpan TimeTracked { get; private set; } = TimeSpan.Zero;
 
-    private DateTime? _lastStartUtc;
+    public Guid CreatedByOrganization { get; private set; }
+    public Guid? CreatedForOrganization { get; private set; }
+
+    public EssencePrice? EssencePrice { get; private set; }
+
+    public IReadOnlyCollection<EssenceStage> Stages => _stages.AsReadOnly();
+
+    private readonly List<EssenceStage> _stages = new();
 
     private Essence() { }
 
@@ -32,9 +41,8 @@ public class Essence
             Title = title.Trim(),
             Description = description?.Trim(),
             Priority = EEssencePriority.Normal,
-            Status = EEssenceStatus.Waiting,
             CreatedById = createdById,
-            CreatedAtUtc = DateTime.UtcNow,
+            CreatedAtUtc = DateTime.UtcNow
         };
     }
 
@@ -55,59 +63,6 @@ public class Essence
     {
         Priority = priority;
     }
-    
-    public void ChangeStatus(EEssenceStatus status)
-    {
-        Status = status;
-    }
-
-    public void Start()
-    {
-        if (Status == EEssenceStatus.InProgress)
-            return;
-        
-        if (Status != EEssenceStatus.Waiting && Status != EEssenceStatus.Paused)
-            throw new DomainException("Можно начинать только из Waiting или Paused");
-
-        Status = EEssenceStatus.InProgress;
-        _lastStartUtc = DateTime.UtcNow;
-        
-    }
-
-    public void Pause()
-    {
-        if (Status != EEssenceStatus.InProgress)
-            return;
-
-        if (_lastStartUtc.HasValue)
-        {
-            TimeTracked += DateTime.UtcNow - _lastStartUtc.Value;
-            _lastStartUtc = null;
-        }
-
-        Status = EEssenceStatus.Paused;
-    }
-
-    public void Complete()
-    {
-        if (Status == EEssenceStatus.Completed)
-            return;
-
-        if (Status == EEssenceStatus.InProgress)
-            Pause();
-
-        Status = EEssenceStatus.Completed;
-        CompletedAtUtc = DateTime.UtcNow;
-    }
-
-    public void Reopen()
-    {
-        if (Status != EEssenceStatus.Completed)
-            return;
-
-        Status = EEssenceStatus.Paused;
-        CompletedAtUtc = null;
-    }
 
     public void UpdateTitle(string title)
     {
@@ -121,14 +76,109 @@ public class Essence
     {
         Description = description?.Trim();
     }
-    
-    public TimeSpan GetCurrentTrackedTime()
+
+    public TimeSpan TotalTime =>
+        TimeSpan.FromTicks(_stages.Sum(s => s.GetCurrentTimeSpent().Ticks));
+
+    public void AddStage(string name, int order, Guid? responsibleId = null, TimeSpan? estimatedDuration = null)
     {
-        var total = TimeTracked;
-        if (Status == EEssenceStatus.InProgress && _lastStartUtc.HasValue)
+        if (_stages.Any(s => s.Order == order))
+            throw new DomainException("Stage with this order already exists");
+
+        var stage = EssenceStage.Create(Id, name, order, responsibleId, estimatedDuration);
+        _stages.Add(stage);
+    }
+
+    public void StartStage(Guid stageId)
+    {
+        var stage = GetStageOrThrow(stageId);
+
+        // запрет старта, если предыдущие не завершены
+        var previousStages = _stages.Where(s => s.Order < stage.Order);
+        if (previousStages.Any(s => s.Status != EEssenceStatus.Completed))
+            throw new DomainException("Previous stages must be completed");
+
+        stage.Start();
+    }
+
+    public void PauseStage(Guid stageId)
+    {
+        var stage = GetStageOrThrow(stageId);
+        stage.Pause();
+    }
+
+    public void CompleteStage(Guid stageId)
+    {
+        var stage = GetStageOrThrow(stageId);
+        stage.Complete();
+
+        if (_stages.All(s => s.Status == EEssenceStatus.Completed))
+            CompletedAtUtc = DateTime.UtcNow;
+    }
+
+    public void ReopenStage(Guid stageId)
+    {
+        var stage = GetStageOrThrow(stageId);
+        stage.Reopen();
+
+        CompletedAtUtc = null;
+    }
+
+    public void ReorderStages(IReadOnlyList<(Guid StageId, int NewOrder)> changes)
+    {
+        if (changes == null || changes.Count == 0)
+            return;
+
+        var stageIds = changes.Select(c => c.StageId).ToHashSet();
+        if (stageIds.Count != changes.Count)
+            throw new DomainException("Duplicate stage IDs");
+
+        var newOrders = changes.Select(c => c.NewOrder).ToList();
+
+        if (newOrders.Any(o => o < 0))
+            throw new DomainException("Order cannot be negative");
+
+        // проверка непрерывности
+        var expected = Enumerable.Range(0, changes.Count);
+        if (!expected.OrderBy(x => x).SequenceEqual(newOrders.OrderBy(x => x)))
+            throw new DomainException("Orders must be continuous starting from 0");
+
+        var dict = _stages.ToDictionary(s => s.Id);
+
+        foreach (var (stageId, newOrder) in changes)
         {
-            total += DateTime.UtcNow - _lastStartUtc.Value;
+            if (!dict.ContainsKey(stageId))
+                throw new DomainException($"Stage {stageId} not found");
+
+            dict[stageId].ChangeOrder(newOrder);
         }
-        return total;
+
+        _stages.Sort((a, b) => a.Order.CompareTo(b.Order));
+    }
+
+    private EssenceStage GetStageOrThrow(Guid stageId)
+    {
+        var stage = _stages.FirstOrDefault(s => s.Id == stageId);
+        if (stage == null)
+            throw new DomainException("Stage not found");
+
+        return stage;
+    }
+
+    private EEssenceStatus CalculateOverallStatus()
+    {
+        if (!_stages.Any())
+            return EEssenceStatus.Waiting;
+
+        if (_stages.All(s => s.Status == EEssenceStatus.Completed))
+            return EEssenceStatus.Completed;
+
+        if (_stages.Any(s => s.Status == EEssenceStatus.InProgress))
+            return EEssenceStatus.InProgress;
+
+        if (_stages.Any(s => s.Status == EEssenceStatus.Paused))
+            return EEssenceStatus.Paused;
+
+        return EEssenceStatus.Waiting;
     }
 }
