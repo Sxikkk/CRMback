@@ -10,6 +10,10 @@ public class RegisterValidator: AbstractValidator<RegisterCommand>
         RuleFor(x => x.Name)
             .NotEmpty()
             .WithMessage("Name is required");
+        
+        RuleFor(x => x.OrganizationId)
+            .NotEmpty()
+            .WithMessage("Name is required");
 
         RuleFor(x => x.Username)
             .NotEmpty()

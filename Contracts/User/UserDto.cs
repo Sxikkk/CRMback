@@ -1,4 +1,6 @@
-﻿namespace Contracts.User;
+﻿using Contracts.Organization;
+
+namespace Contracts.User;
 
 public class UserDto
 {
@@ -8,4 +10,5 @@ public class UserDto
     public string Email { get; set; } = null!;
     public string Phone { get; set; } = null!;
     public string UserName { get; set; } = null!;
+    public SimpleOrganizationDto? Organization { get; set; } = null!;
 }

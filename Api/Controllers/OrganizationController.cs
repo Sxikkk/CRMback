@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Controllers;
 
 [ApiController]
-[Route("api/organization")]
+[Route("api/organizations")]
 [Authorize]
 public class OrganizationController: ControllerBase
 {
@@ -18,6 +18,7 @@ public class OrganizationController: ControllerBase
     }
 
     [HttpGet("all")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAllShortOrganizations(CancellationToken cancellationToken)
     {
         var response = await _mediator.Send(new GetAllOrganizationsQuery(), cancellationToken);

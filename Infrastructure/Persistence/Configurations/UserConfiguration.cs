@@ -21,6 +21,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         );
 
         builder.HasKey(u => u.Id);
+        builder.Property(u => u.Role).HasConversion<string>();
 
         builder.HasIndex(u => u.Id).IsUnique();
         builder.HasIndex(u => u.Email).IsUnique();

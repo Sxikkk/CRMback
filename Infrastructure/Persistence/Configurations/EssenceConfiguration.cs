@@ -20,10 +20,10 @@ public class EssenceConfiguration: IEntityTypeConfiguration<Essence>
 
         builder.Property(e => e.Priority)
             .IsRequired()
-            .HasConversion<int>();
+            .HasConversion<string>();
 
         builder.Ignore(e => e.Status);
-
+        
         builder.Property(e => e.CreatedById)
             .IsRequired();
 

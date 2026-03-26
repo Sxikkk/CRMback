@@ -57,5 +57,7 @@ public class OrganizationConfiguration : IEntityTypeConfiguration<Organization>
             .HasFilter("\"Inn\" IS NOT NULL");
 
         builder.HasIndex(o => o.Name);
+        
+        builder.HasData(Organization.CreateTaskflow());
     }
 }

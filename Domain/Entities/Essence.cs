@@ -93,7 +93,6 @@ public class Essence
     {
         var stage = GetStageOrThrow(stageId);
 
-        // запрет старта, если предыдущие не завершены
         var previousStages = _stages.Where(s => s.Order < stage.Order);
         if (previousStages.Any(s => s.Status != EEssenceStatus.Completed))
             throw new DomainException("Previous stages must be completed");
@@ -124,7 +123,7 @@ public class Essence
         CompletedAtUtc = null;
     }
 
-    public void ReorderStages(IReadOnlyList<(Guid StageId, int NewOrder)> changes)
+    public void ReorderStages(IReadOnlyList<(Guid StageId, int NewOrder)>? changes)
     {
         if (changes == null || changes.Count == 0)
             return;
@@ -138,7 +137,6 @@ public class Essence
         if (newOrders.Any(o => o < 0))
             throw new DomainException("Order cannot be negative");
 
-        // проверка непрерывности
         var expected = Enumerable.Range(0, changes.Count);
         if (!expected.OrderBy(x => x).SequenceEqual(newOrders.OrderBy(x => x)))
             throw new DomainException("Orders must be continuous starting from 0");
@@ -147,10 +145,9 @@ public class Essence
 
         foreach (var (stageId, newOrder) in changes)
         {
-            if (!dict.ContainsKey(stageId))
+            if (!dict.TryGetValue(stageId, out var value))
                 throw new DomainException($"Stage {stageId} not found");
-
-            dict[stageId].ChangeOrder(newOrder);
+            value.ChangeOrder(newOrder);
         }
 
         _stages.Sort((a, b) => a.Order.CompareTo(b.Order));
@@ -167,7 +164,7 @@ public class Essence
 
     private EEssenceStatus CalculateOverallStatus()
     {
-        if (!_stages.Any())
+        if (_stages.Count == 0)
             return EEssenceStatus.Waiting;
 
         if (_stages.All(s => s.Status == EEssenceStatus.Completed))

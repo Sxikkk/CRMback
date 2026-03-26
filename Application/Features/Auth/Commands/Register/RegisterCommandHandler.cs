@@ -14,20 +14,27 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, TokenDto>
     private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
     private readonly IRequestContext _requestContext;
+    private readonly IOrganizationRepository _organizationRepository;
     private readonly IUnitOfWork _unitOfWork;
 
     public RegisterCommandHandler(IUserRepository userRepository, IJwtTokenGenerator jwtTokenGenerator,
-        IRefreshTokenRepository refreshTokenRepository, IRequestContext requestContext, IUnitOfWork unitOfWork)
+        IRefreshTokenRepository refreshTokenRepository, IRequestContext requestContext, IUnitOfWork unitOfWork, IOrganizationRepository organizationRepository)
     {
         _userRepository = userRepository;
         _jwtTokenGenerator = jwtTokenGenerator;
         _refreshTokenRepository = refreshTokenRepository;
         _requestContext = requestContext;
         _unitOfWork = unitOfWork;
+        _organizationRepository = organizationRepository;
     }
 
     public async Task<TokenDto> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
+        var isOrgExist = await _organizationRepository.HasOrganizationAsync(request.OrganizationId, cancellationToken);
+
+        if (isOrgExist is false)
+            throw new ApplicationException("Organization not found");
+        
         var existUser = await _userRepository.GetUserByEmailAsync(request.Email, cancellationToken);
 
         if (existUser is not null)

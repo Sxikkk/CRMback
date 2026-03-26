@@ -5,6 +5,7 @@ namespace Application.Features.Auth.Commands.Register;
 
 public sealed record RegisterCommand : IRequest<TokenDto>
 {
+    public Guid OrganizationId { get; init; }
     public string Name { get; init; }
     public string Surname { get; init; }
     public string Username { get; init; }

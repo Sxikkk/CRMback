@@ -18,4 +18,14 @@ public class OrganizationRepository: IOrganizationRepository
     {
         return await _context.Organizations.ToListAsync(cancellationToken);
     }
+
+    public async Task<Organization?> GetOrganizationByIdAsync(Guid organizationId, CancellationToken cancellationToken)
+    {
+        return await _context.Organizations.FirstOrDefaultAsync(org => org.Id == organizationId, cancellationToken);
+    }
+
+    public async Task<bool> HasOrganizationAsync(Guid organizationId, CancellationToken cancellationToken)
+    {
+        return await _context.Organizations.AnyAsync(org => org.Id == organizationId, cancellationToken);
+    }
 }
