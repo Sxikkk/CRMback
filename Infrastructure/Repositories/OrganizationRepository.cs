@@ -28,4 +28,14 @@ public class OrganizationRepository: IOrganizationRepository
     {
         return await _context.Organizations.AnyAsync(org => org.Id == organizationId, cancellationToken);
     }
+    
+    public async Task<List<Organization>> GetOrganizationsByIdsAsync(List<Guid>? ids, CancellationToken cancellationToken)
+    {
+        if (ids is not null || ids!.Count == 0)
+            return [];
+
+        return await _context.Organizations
+            .Where(o => ids.Contains(o.Id))
+            .ToListAsync(cancellationToken);
+    }
 }

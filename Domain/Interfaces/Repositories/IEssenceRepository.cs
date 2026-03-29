@@ -26,4 +26,8 @@ public interface IEssenceRepository
         EEssenceStatus? status,
         EEssencePriority? priority,
         CancellationToken cancellationToken = default);
+    
+    Task<IReadOnlyDictionary<EEssenceStatus, int>> GetStatusStatisticByCreatorSqlAsync(                                                                                                                                                                                                                       
+        Guid creatorId,                                                                                                                                                                                                                                                                                       
+        CancellationToken cancellationToken = default);         
 }

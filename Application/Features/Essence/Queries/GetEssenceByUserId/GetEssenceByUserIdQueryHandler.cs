@@ -36,7 +36,7 @@ public class GetEssenceByUserIdQueryHandler : IRequestHandler<GetEssenceByUserId
             Email = rawCreator.Email,
             Name = rawCreator.Name,
             Phone = rawCreator.Phone,
-            Surname = rawCreator.Surname,   
+            Surname = rawCreator.Surname,
             UserName = rawCreator.UserName,
         };
 
@@ -78,7 +78,10 @@ public class GetEssenceByUserIdQueryHandler : IRequestHandler<GetEssenceByUserId
             CompletedAtUtc = essence.CompletedAtUtc,
             TimeTracked = essence.TotalTime,
             Creator = creator,
-            Executor = essence.AssignedToId.HasValue && executors.TryGetValue(essence.AssignedToId.Value, out var executor)
+            Stages = essence.Stages.Select(s => new StageDto(s.Id, s.EssenceId, s.Name, s.Order, s.Status,
+                s.StartedAt, s.CompletedAt, s.EstimatedDuration, s.TimeSpent)).ToArray(),
+            Executor = essence.AssignedToId.HasValue &&
+                       executors.TryGetValue(essence.AssignedToId.Value, out var executor)
                 ? executor
                 : null
         }).ToList();

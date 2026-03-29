@@ -1,12 +1,11 @@
-﻿
-using Contracts.Tasks;
+﻿using Contracts.Tasks;
 using Contracts.User;
 using Domain.Interfaces.Repositories;
 using MediatR;
 
 namespace Application.Features.Essence.Queries.GetEssenceById;
 
-public class GetEssenceByIdQueryHandler: IRequestHandler<GetEssenceByIdQuery, EssenceDto>
+public class GetEssenceByIdQueryHandler : IRequestHandler<GetEssenceByIdQuery, EssenceDto>
 {
     private readonly IEssenceRepository _essenceRepository;
     private readonly IUserRepository _userRepository;
@@ -23,7 +22,7 @@ public class GetEssenceByIdQueryHandler: IRequestHandler<GetEssenceByIdQuery, Es
 
         if (essence is null)
             throw new ApplicationException("Essence not found");
-        
+
         var rawCreator = await _userRepository.GetUserByIdAsync(essence.CreatedById, cancellationToken);
         var creator = new UserDto
         {
@@ -34,7 +33,7 @@ public class GetEssenceByIdQueryHandler: IRequestHandler<GetEssenceByIdQuery, Es
             Surname = rawCreator.Surname,
             UserName = rawCreator.UserName,
         };
-          
+
         var rawExecutor = await _userRepository.GetUserByIdAsync(essence.CreatedById, cancellationToken);
         var executor = new UserDto
         {
@@ -45,8 +44,12 @@ public class GetEssenceByIdQueryHandler: IRequestHandler<GetEssenceByIdQuery, Es
             Surname = rawExecutor.Surname,
             UserName = rawExecutor.UserName,
         };
-        
-        return new EssenceDto{
+
+        var stagesDto = essence.Stages.Select(s => new StageDto(s.Id, s.EssenceId, s.Name, s.Order, s.Status,
+            s.StartedAt, s.CompletedAt, s.EstimatedDuration, s.TimeSpent)).ToArray();
+
+        return new EssenceDto
+        {
             Id = essence.Id,
             Title = essence.Title,
             Description = essence.Description,
@@ -60,6 +63,7 @@ public class GetEssenceByIdQueryHandler: IRequestHandler<GetEssenceByIdQuery, Es
             TimeTracked = essence.TotalTime,
             Creator = creator,
             Executor = executor,
+            Stages = stagesDto
         };
     }
 }

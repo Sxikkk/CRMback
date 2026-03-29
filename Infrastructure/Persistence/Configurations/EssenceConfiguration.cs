@@ -50,10 +50,22 @@ public class EssenceConfiguration: IEntityTypeConfiguration<Essence>
             )
             .HasColumnName("Price");
 
-        builder.HasMany(e => e.Stages)
-            .WithOne()
-            .HasForeignKey("EssenceId")
-            .OnDelete(DeleteBehavior.Cascade);
+        builder.OwnsMany(e => e.Stages, s =>
+        {
+            s.WithOwner().HasForeignKey("EssenceId");
+            s.HasKey(st => st.Id);
+
+            s.Property(st => st.Id).ValueGeneratedNever();
+            s.Property(st => st.Name).IsRequired().HasMaxLength(200);
+            s.Property(st => st.Order).IsRequired();
+            s.Property(st => st.Status).IsRequired().HasConversion<string>();
+            s.Property(st => st.StartedAt);
+            s.Property(st => st.CompletedAt);
+            s.Property(st => st.EstimatedDuration).IsRequired();
+            s.Property(st => st.TimeSpent).IsRequired();
+
+            s.Property("_lastStartUtc").HasColumnName("LastStartUtc");
+        });
 
         builder.Navigation(e => e.Stages)
             .UsePropertyAccessMode(PropertyAccessMode.Field);

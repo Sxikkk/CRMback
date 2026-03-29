@@ -80,12 +80,12 @@ public class Essence
     public TimeSpan TotalTime =>
         TimeSpan.FromTicks(_stages.Sum(s => s.GetCurrentTimeSpent().Ticks));
 
-    public void AddStage(string name, int order, Guid? responsibleId = null, TimeSpan? estimatedDuration = null)
+    public void AddStage(string name, int order, TimeSpan? estimatedDuration = null)
     {
         if (_stages.Any(s => s.Order == order))
             throw new DomainException("Stage with this order already exists");
 
-        var stage = EssenceStage.Create(Id, name, order, responsibleId, estimatedDuration);
+        var stage = EssenceStage.Create(Id, name, order, estimatedDuration);
         _stages.Add(stage);
     }
 

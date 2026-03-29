@@ -14,7 +14,6 @@ public class EssenceStage
     public DateTime? StartedAt { get; private set; }
     public DateTime? CompletedAt { get; private set; }
 
-    public Guid? ResponsibleId { get; private set; }
     public TimeSpan EstimatedDuration { get; private set; } = TimeSpan.Zero;
     public TimeSpan TimeSpent { get; private set; } = TimeSpan.Zero;
 
@@ -26,7 +25,6 @@ public class EssenceStage
         Guid essenceId,
         string name,
         int order,
-        Guid? responsibleId = null,
         TimeSpan? estimatedDuration = null)
     {
         if (string.IsNullOrWhiteSpace(name))
@@ -42,7 +40,6 @@ public class EssenceStage
             Name = name.Trim(),
             Order = order,
             Status = EEssenceStatus.Waiting,
-            ResponsibleId = responsibleId,
             EstimatedDuration = estimatedDuration ?? TimeSpan.Zero
         };
     }

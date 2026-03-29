@@ -69,6 +69,6 @@ public class Organization
         };
     }
     
-    public static string CreateDescription(string inn, string ogrn, EOrganizationType orgType, string orgPhone) =>
-        $"{inn} - {orgType} - {ogrn} - {orgPhone}";
+    public static string CreateDescription(string? inn = null, string? ogrn = null, EOrganizationType? orgType = null, string? orgPhone = null) =>
+        $"{inn ?? "неизвестно"} - {orgType ?? EOrganizationType.Other} - {ogrn ?? "неизвестно"} - {orgPhone ?? "неизвестно"}";
 }

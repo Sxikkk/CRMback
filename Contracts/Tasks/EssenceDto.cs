@@ -14,6 +14,7 @@ public class EssenceDto
     public EEssencePriority Priority { get; set; }
 
     public EEssenceStatus Status { get; set; }
+    public StageDto[] Stages { get; set; } = null!; 
 
     public Guid CreatedById { get; set; }
 
