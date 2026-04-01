@@ -74,42 +74,38 @@ public class EssenceRepository: IEssenceRepository
 
         return await query.ToListAsync(cancellationToken);
     }
-    
-      public async Task<IReadOnlyDictionary<EEssenceStatus, int>> GetStatusStatisticByCreatorSqlAsync(                                                                                                                                                                                                          
-      Guid creatorId,                                                                                                                                                                                                                                                                                       
-      CancellationToken cancellationToken = default)                                                                                                                                                                                                                                                        
-  {                                                                                                                                                                                                                                                                                                         
-      var grouped = await _context.Essences                                                                                                                                                                                                                                                                 
-          .AsNoTracking()                                                                                                                                                                                                                                                                                   
-          .Where(e => e.CreatedById == creatorId)                                                                                                                                                                                                                                                           
-          .GroupJoin(                                                                                                                                                                                                                                                                                       
-              _context.Set<EssenceStage>().AsNoTracking(),                                                                                                                                                                                                                                                  
-              e => e.Id,                                                                                                                                                                                                                                                                                    
-              s => s.EssenceId,                                                                                                                                                                                                                                                                             
-              (e, stages) => new                                                                                                                                                                                                                                                                            
-              {                                                                                                                                                                                                                                                                                             
-                  Status =                                                                                                                                                                                                                                                                                  
-                      !stages.Any() ? EEssenceStatus.Waiting :                                                                                                                                                                                                                                              
-                      stages.All(s => s.Status == EEssenceStatus.Completed) ? EEssenceStatus.Completed :                                                                                                                                                                                                    
-                      stages.Any(s => s.Status == EEssenceStatus.InProgress) ? EEssenceStatus.InProgress :                                                                                                                                                                                                  
-                      stages.Any(s => s.Status == EEssenceStatus.Paused) ? EEssenceStatus.Paused :                                                                                                                                                                                                          
-                      EEssenceStatus.Waiting                                                                                                                                                                                                                                                                
-              })                                                                                                                                                                                                                                                                                            
-          .GroupBy(x => x.Status)                                                                                                                                                                                                                                                                           
-          .Select(g => new { Status = g.Key, Count = g.Count() })                                                                                                                                                                                                                                           
-          .ToListAsync(cancellationToken);                                                                                                                                                                                                                                                                  
-                                                                                                                                                                                                                                                                                                            
-      var result = new Dictionary<EEssenceStatus, int>                                                                                                                                                                                                                                                      
-      {                                                                                                                                                                                                                                                                                                     
-          [EEssenceStatus.Waiting] = 0,                                                                                                                                                                                                                                                                     
-          [EEssenceStatus.Paused] = 0,                                                                                                                                                                                                                                                                      
-          [EEssenceStatus.InProgress] = 0,                                                                                                                                                                                                                                                                  
-          [EEssenceStatus.Completed] = 0                                                                                                                                                                                                                                                                    
-      };                                                                                                                                                                                                                                                                                                    
-                                                                                                                                                                                                                                                                                                            
-      foreach (var row in grouped)                                                                                                                                                                                                                                                                          
-          result[row.Status] = row.Count;                                                                                                                                                                                                                                                                   
-                                                                                                                                                                                                                                                                                                            
-      return result;
-  } 
+
+    public async Task<IReadOnlyDictionary<EEssenceStatus, int>> GetStatusStatisticByCreatorSqlAsync(
+        Guid creatorId,
+        CancellationToken cancellationToken = default)
+    {
+        var grouped = await _context.Essences
+            .AsNoTracking()
+            .Where(e => e.CreatedById == creatorId)
+            .Select(e => new
+            {
+                Status =
+                    !e.Stages.Any() ? EEssenceStatus.Waiting :
+                    e.Stages.All(s => s.Status == EEssenceStatus.Completed) ? EEssenceStatus.Completed :
+                    e.Stages.Any(s => s.Status == EEssenceStatus.InProgress) ? EEssenceStatus.InProgress :
+                    e.Stages.Any(s => s.Status == EEssenceStatus.Paused) ? EEssenceStatus.Paused :
+                    EEssenceStatus.Waiting
+            })
+            .GroupBy(x => x.Status)
+            .Select(g => new { Status = g.Key, Count = g.Count() })
+            .ToListAsync(cancellationToken);
+
+        var result = new Dictionary<EEssenceStatus, int>
+        {
+            [EEssenceStatus.Waiting] = 0,
+            [EEssenceStatus.Paused] = 0,
+            [EEssenceStatus.InProgress] = 0,
+            [EEssenceStatus.Completed] = 0
+        };
+
+        foreach (var row in grouped)
+            result[row.Status] = row.Count;
+
+        return result;
+    }
 }

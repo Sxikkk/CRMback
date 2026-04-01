@@ -1,4 +1,5 @@
-﻿using Application.Features.Organization.Queries.GetAllOrganizations;
+﻿using Application.Features.Organization.Commands.CreateOrganization;
+using Application.Features.Organization.Queries.GetAllOrganizations;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +23,16 @@ public class OrganizationController: ControllerBase
     public async Task<IActionResult> GetAllShortOrganizations(CancellationToken cancellationToken)
     {
         var response = await _mediator.Send(new GetAllOrganizationsQuery(), cancellationToken);
+        
+        return Ok(response);
+    }
+
+    [HttpPost("create")]
+    [AllowAnonymous]
+    public async Task<IActionResult> CreateOrganization(CreateOrganizationCommand command,
+        CancellationToken cancellationToken)
+    {
+        var response = await _mediator.Send(command, cancellationToken);
         
         return Ok(response);
     }

@@ -47,6 +47,8 @@ public class Organization
         Email = email?.Trim().ToLowerInvariant();
         Phone = phone?.Trim();
     }
+    
+    public void SetWebsite(string? website) => Website = website?.Trim();
 
     public void Block() => Status = EOrganizationStatus.Blocked;
     public void Activate() => Status = EOrganizationStatus.Active;

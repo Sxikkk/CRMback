@@ -52,7 +52,8 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, TokenDto>
             ip
         );
         
-        user.AssignToOrganization(organization.Id);
+        if (user.OrganizationId != organization.Id)
+            throw new ApplicationException("Invalid credentials");
         
         await _refreshTokenRepository.AddTokenAsync(refreshToken, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
