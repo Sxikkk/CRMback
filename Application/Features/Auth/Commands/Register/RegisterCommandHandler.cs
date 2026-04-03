@@ -1,4 +1,4 @@
-﻿using Application.Common.Interfaces;
+using Application.Common.Interfaces;
 using Contracts.Auth;
 using Domain.Entities;
 using Domain.Interfaces.Repositories;
@@ -56,7 +56,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, TokenDto>
             passwordHash
         );
 
-        var tokens = _jwtTokenGenerator.GenerateTokens(user.Id, user.UserName);
+        var tokens = _jwtTokenGenerator.GenerateTokens(user.Id, user.UserName, user.Role);
 
         var hashRefreshToken = _jwtTokenGenerator.HashToken(tokens.refreshToken);
 

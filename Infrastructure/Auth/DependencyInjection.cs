@@ -1,5 +1,7 @@
-﻿using System.Text;
+using System.Security.Claims;
+using System.Text;
 using Application.Common.Options;
+using Domain.Enums;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,13 +31,25 @@ public static class DependencyInjection
 
                     IssuerSigningKey = new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(secret!)),
-                    
-                    ClockSkew = TimeSpan.Zero
+
+                    ClockSkew = TimeSpan.Zero,
+                    NameClaimType = ClaimTypes.Name,
+                    RoleClaimType = ClaimTypes.Role
                 };
             });
 
-        services.AddAuthorization();
-        
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy("OrganizationsRead", policy =>
+                policy.RequireAuthenticatedUser()
+                    .RequireClaim("scope", "crm.organizations.read", "crm.organizations.write"));
+
+            options.AddPolicy("OrganizationsWrite", policy =>
+                policy.RequireAuthenticatedUser()
+                    .RequireRole(nameof(ERole.Admin))
+                    .RequireClaim("scope", "crm.organizations.write"));
+        });
+
         return services;
     }
 }

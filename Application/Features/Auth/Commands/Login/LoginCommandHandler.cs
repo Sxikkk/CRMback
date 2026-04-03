@@ -38,8 +38,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, TokenDto>
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             throw new ApplicationException("Invalid credentials");
-
-        var tokens = _jwtTokenGenerator.GenerateTokens(user.Id, user.UserName);
+        var tokens = _jwtTokenGenerator.GenerateTokens(user.Id, user.UserName, user.Role);
 
         var hashRefreshToken = _jwtTokenGenerator.HashToken(tokens.refreshToken);
 

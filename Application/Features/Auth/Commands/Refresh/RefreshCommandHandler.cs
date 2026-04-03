@@ -1,4 +1,4 @@
-﻿using Application.Common.Interfaces;
+using Application.Common.Interfaces;
 using Contracts.Auth;
 using Domain.Interfaces.Repositories;
 using Domain.Interfaces.Security;
@@ -56,7 +56,7 @@ public class RefreshCommandHandler : IRequestHandler<RefreshCommand, TokenDto>
             
         }
         
-        var tokens = _jwtTokenGenerator.GenerateTokens(user.Id, user.UserName);
+        var tokens = _jwtTokenGenerator.GenerateTokens(user.Id, user.UserName, user.Role);
         
         var newHashedToken = _jwtTokenGenerator.HashToken(tokens.refreshToken);
         
@@ -72,3 +72,4 @@ public class RefreshCommandHandler : IRequestHandler<RefreshCommand, TokenDto>
         };
     }
 }
+

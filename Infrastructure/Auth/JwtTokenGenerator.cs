@@ -1,8 +1,9 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Application.Common.Options;
+using Domain.Enums;
 using Domain.Interfaces.Security;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -10,7 +11,7 @@ using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegiste
 
 namespace Infrastructure.Auth;
 
-public class JwtTokenGenerator: IJwtTokenGenerator
+public class JwtTokenGenerator : IJwtTokenGenerator
 {
     private readonly JwtSettings _options;
 
@@ -19,19 +20,28 @@ public class JwtTokenGenerator: IJwtTokenGenerator
         _options = options.Value;
     }
 
-    public string GenerateToken(Guid userId, string username)
+    public string GenerateToken(Guid userId, string username, ERole role)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SecretKey));
-        
+
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        var claims = new[]
+        var claims = new List<Claim>
         {
-            new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
-            new Claim(JwtRegisteredClaimNames.UniqueName, username),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            new(JwtRegisteredClaimNames.Sub, userId.ToString()),
+            new(JwtRegisteredClaimNames.UniqueName, username),
+            new(ClaimTypes.NameIdentifier, userId.ToString()),
+            new(ClaimTypes.Name, username),
+            new(ClaimTypes.Role, role.ToString()),
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
-        
+
+        if (role == ERole.Admin)
+        {
+            claims.Add(new Claim("scope", "crm.organizations.read"));
+            claims.Add(new Claim("scope", "crm.organizations.write"));
+        }
+
         var token = new JwtSecurityToken(
             issuer: _options.Issuer,
             audience: _options.Audience,
@@ -39,10 +49,10 @@ public class JwtTokenGenerator: IJwtTokenGenerator
             expires: DateTime.UtcNow.AddMinutes(_options.ExpirationMinutes),
             signingCredentials: credentials
         );
-        
+
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
-    
+
     public string GenerateRefreshToken()
     {
         var bytes = RandomNumberGenerator.GetBytes(64);
@@ -59,9 +69,9 @@ public class JwtTokenGenerator: IJwtTokenGenerator
         return Convert.ToHexString(hash);
     }
 
-    public (string accessToken, string refreshToken, TimeSpan refreshExpires) GenerateTokens(Guid userId, string username)
+    public (string accessToken, string refreshToken, TimeSpan refreshExpires) GenerateTokens(Guid userId, string username, ERole role)
     {
-        var accessToken = GenerateToken(userId, username);
+        var accessToken = GenerateToken(userId, username, role);
 
         var rawRefresh = GenerateRefreshToken();
 

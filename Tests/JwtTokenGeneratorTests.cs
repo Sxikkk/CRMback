@@ -24,7 +24,7 @@ public class JwtTokenGeneratorTests
         var settings = CreateSettings();
         var generator = new JwtTokenGenerator(Options.Create(settings));
 
-        var token = generator.GenerateToken(Guid.NewGuid(), "jdoe");
+        var token = generator.GenerateToken(Guid.NewGuid(), "jdoe", Domain.Enums.ERole.Admin);
 
         Assert.False(string.IsNullOrWhiteSpace(token));
 
@@ -48,3 +48,4 @@ public class JwtTokenGeneratorTests
         Assert.True(principal.Identity!.IsAuthenticated);
     }
 }
+

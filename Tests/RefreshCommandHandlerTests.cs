@@ -33,7 +33,7 @@ public class RefreshCommandHandlerTests
         var jwt = new Mock<IJwtTokenGenerator>();
         jwt.Setup(j => j.HashToken(incomingRaw)).Returns(incomingHash);
         jwt.Setup(j => j.HashToken(newRaw)).Returns(newHash);
-        jwt.Setup(j => j.GenerateTokens(It.IsAny<Guid>(), It.IsAny<string>()))
+        jwt.Setup(j => j.GenerateTokens(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Domain.Enums.ERole>()))
             .Returns(("access-token", newRaw, TimeSpan.FromDays(7)));
 
         var refreshRepo = new Mock<IRefreshTokenRepository>();
@@ -96,3 +96,4 @@ public class RefreshCommandHandlerTests
         refreshRepo.Verify(r => uowRepo.Object.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }
+
