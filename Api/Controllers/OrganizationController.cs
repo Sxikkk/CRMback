@@ -6,6 +6,8 @@ using Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
+using System.Diagnostics;
 
 namespace Api.Controllers;
 
@@ -15,10 +17,12 @@ namespace Api.Controllers;
 public class OrganizationController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly ILogger<OrganizationController> _logger;
 
-    public OrganizationController(IMediator mediator)
+    public OrganizationController(IMediator mediator, ILogger<OrganizationController> logger)
     {
         _mediator = mediator;
+        _logger = logger;
     }
 
     [HttpGet("all")]
@@ -41,18 +45,19 @@ public class OrganizationController : ControllerBase
 
     [HttpPut("{organizationId:guid}/change-status")]
     [Authorize(Policy = "OrganizationsWrite")]
-    public async Task<IActionResult> ChangeOrganizationStatusAsync([FromQuery] Guid organizationId,
+    public async Task<IActionResult> ChangeOrganizationStatusAsync([FromRoute] Guid organizationId,
         [FromBody] EOrganizationStatus status,
         CancellationToken cancellationToken)
     {
-        var response = await _mediator.Send(new ChangeOrganizationStatusCommand(organizationId, status), cancellationToken);
+        var response = await _mediator.Send(new ChangeOrganizationStatusCommand(organizationId, status),
+            cancellationToken);
 
         return Ok(response);
     }
 
     [HttpPut("{organizationId:guid}/change-type")]
     [Authorize(Policy = "OrganizationsWrite")]
-    public async Task<IActionResult> ChangeOrganizationTypeAsync([FromQuery] Guid organizationId,
+    public async Task<IActionResult> ChangeOrganizationTypeAsync([FromRoute] Guid organizationId,
         [FromBody] EOrganizationType type,
         CancellationToken cancellationToken)
     {

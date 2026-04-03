@@ -34,6 +34,7 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 app.UseCors("allowAll");
 
+// app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseGlobalExceptionHandler();
 
 if (app.Environment.IsDevelopment())

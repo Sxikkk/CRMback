@@ -8,4 +8,5 @@ public interface IJwtTokenGenerator
     string GenerateRefreshToken();
     string HashToken(string token);
     (string accessToken, string refreshToken, TimeSpan refreshExpires) GenerateTokens(Guid userId, string username, ERole role);
+    (string accessToken, string refreshToken, TimeSpan refreshExpires) GenerateServiceTokens(string username);
 }

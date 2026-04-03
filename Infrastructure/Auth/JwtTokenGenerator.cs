@@ -69,7 +69,8 @@ public class JwtTokenGenerator : IJwtTokenGenerator
         return Convert.ToHexString(hash);
     }
 
-    public (string accessToken, string refreshToken, TimeSpan refreshExpires) GenerateTokens(Guid userId, string username, ERole role)
+    public (string accessToken, string refreshToken, TimeSpan refreshExpires) GenerateTokens(Guid userId,
+        string username, ERole role)
     {
         var accessToken = GenerateToken(userId, username, role);
 
@@ -78,5 +79,42 @@ public class JwtTokenGenerator : IJwtTokenGenerator
         var refreshExpires = TimeSpan.FromDays(_options.ExpirationDays);
 
         return (accessToken, rawRefresh, refreshExpires);
+    }
+
+    public (string accessToken, string refreshToken, TimeSpan refreshExpires) GenerateServiceTokens(string username)
+    {
+        var accessToken = GenerateServiceToken(username);
+
+        var rawRefresh = GenerateRefreshToken();
+
+        var refreshExpires = TimeSpan.FromDays(_options.ExpirationDays);
+
+        return (accessToken, rawRefresh, refreshExpires);
+    }
+
+    private string GenerateServiceToken(string username)
+    {
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SecretKey));
+
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var claims = new List<Claim>
+        {
+            new(JwtRegisteredClaimNames.UniqueName, username),
+            new(ClaimTypes.Name, username),
+            new(ClaimTypes.Role, nameof(ERole.Admin)),
+            new("scope", "crm.organizations.read"),
+            new("scope", "crm.organizations.write")
+        };
+
+        var token = new JwtSecurityToken(
+            issuer: _options.ServiceIssuer,
+            audience: _options.ServiceAudience,
+            claims: claims,
+            expires: DateTime.UtcNow.AddMinutes(_options.ExpirationMinutes),
+            signingCredentials: credentials
+        );
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }

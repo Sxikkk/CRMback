@@ -12,16 +12,14 @@ public class RequestContext : IRequestContext
     {
         _httpContextAccessor = httpContextAccessor;
     }
-    
+
     public string IpAddress => _httpContextAccessor?.HttpContext?.Connection?.RemoteIpAddress?.ToString() ?? "unknown";
-    
-    public Guid? UserId => 
+
+    public Guid? UserId =>
         _httpContextAccessor?.HttpContext?.User?
-            .FindFirst(ClaimTypes.NameIdentifier)?.Value is { } id 
-            ? Guid.Parse(id) 
+            .FindFirst(ClaimTypes.NameIdentifier)?.Value is { } id
+            ? Guid.Parse(id)
             : null;
 
-    public string? Username => 
-        _httpContextAccessor?.HttpContext?.User?
-            .FindFirst(ClaimTypes.Name)?.Value;
+    public string? XAdminKey => _httpContextAccessor?.HttpContext?.Request?.Headers?["x-admin-key"];
 }

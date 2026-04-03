@@ -26,8 +26,8 @@ public static class DependencyInjection
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
 
-                    ValidIssuer = jwtSection?.Issuer,
-                    ValidAudience = jwtSection?.Audience,
+                    ValidIssuers = new[] { jwtSection?.Issuer, jwtSection?.ServiceIssuer },
+                    ValidAudiences = new[] { jwtSection?.Audience, jwtSection?.ServiceAudience },
 
                     IssuerSigningKey = new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(secret!)),
