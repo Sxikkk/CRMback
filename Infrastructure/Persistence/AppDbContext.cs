@@ -23,9 +23,6 @@ public sealed class AppDbContext : DbContext
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
-        Console.WriteLine(Database.CanConnect()
-            ? "✅ PostgreSQL подключена успешно"
-            : "❌ Не удалось подключиться к PostgreSQL");
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

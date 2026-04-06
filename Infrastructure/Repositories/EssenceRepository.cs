@@ -108,4 +108,9 @@ public class EssenceRepository: IEssenceRepository
 
         return result;
     }
+
+    public async Task<IReadOnlyList<Essence>> GetByOrganizationIdAsync(Guid organizationId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Essences.Where(e => e.CreatedByOrganization == organizationId).ToListAsync(cancellationToken);
+    }
 }

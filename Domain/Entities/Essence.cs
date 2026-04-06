@@ -23,14 +23,13 @@ public class Essence
     public Guid? CreatedForOrganization { get; private set; }
 
     public EssencePrice? EssencePrice { get; private set; }
-
     public IReadOnlyCollection<EssenceStage> Stages => _stages.AsReadOnly();
 
     private readonly List<EssenceStage> _stages = new();
 
     private Essence() { }
 
-    public static Essence Create(string title, Guid createdById, string? description = null)
+    public static Essence Create(string title, Guid createdById, Guid organizationId, string? description = null)
     {
         if (string.IsNullOrWhiteSpace(title))
             throw new DomainException("Title cannot be empty");
@@ -42,13 +41,19 @@ public class Essence
             Description = description?.Trim(),
             Priority = EEssencePriority.Normal,
             CreatedById = createdById,
-            CreatedAtUtc = DateTime.UtcNow
+            CreatedAtUtc = DateTime.UtcNow,
+            CreatedByOrganization = organizationId,
         };
     }
 
     public void AssignTo(Guid? userId)
     {
         AssignedToId = userId;
+    }
+    
+    public void AssignToOrganization(Guid? organizationId)
+    {
+        CreatedForOrganization = organizationId;
     }
 
     public void SetDueDate(DateTime? dueDate)

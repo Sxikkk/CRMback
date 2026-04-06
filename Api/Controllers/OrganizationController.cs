@@ -2,12 +2,11 @@ using Application.Features.Organization.Commands.ChangeOrganizationStatus;
 using Application.Features.Organization.Commands.ChangeOrganizationType;
 using Application.Features.Organization.Commands.CreateOrganization;
 using Application.Features.Organization.Queries.GetAllOrganizations;
+using Application.Features.Organization.Queries.GetOrganizationInfo;
 using Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
-using System.Diagnostics;
 
 namespace Api.Controllers;
 
@@ -17,18 +16,26 @@ namespace Api.Controllers;
 public class OrganizationController : ControllerBase
 {
     private readonly IMediator _mediator;
-    private readonly ILogger<OrganizationController> _logger;
 
-    public OrganizationController(IMediator mediator, ILogger<OrganizationController> logger)
+    public OrganizationController(IMediator mediator)
     {
         _mediator = mediator;
-        _logger = logger;
     }
 
     [HttpGet("all")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAllShortOrganizations(CancellationToken cancellationToken)
     {
         var response = await _mediator.Send(new GetAllOrganizationsQuery(), cancellationToken);
+
+        return Ok(response);
+    }
+    
+    [HttpGet("{organizationId:guid}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetOrganizationInfo([FromRoute] Guid organizationId, CancellationToken cancellationToken)
+    {
+        var response = await _mediator.Send(new GetOrganizationInfoQuery(organizationId), cancellationToken);
 
         return Ok(response);
     }

@@ -70,11 +70,6 @@ public class Organization
             CreateDate = DateTime.SpecifyKind(new DateTime(2026, 3, 26), DateTimeKind.Utc)
         };
     }
-
-    public void ChangeStatus(EOrganizationStatus status)
-    {
-        Status = status;
-    }
     
     public void ChangeType(EOrganizationType type)
     {

@@ -1,4 +1,5 @@
-﻿using Domain.Interfaces.Repositories;
+﻿using Domain.Enums;
+using Domain.Interfaces.Repositories;
 using MediatR;
 
 namespace Application.Features.Organization.Commands.ChangeOrganizationStatus;
@@ -20,8 +21,18 @@ public class ChangeOrganizationStatusCommandHandler: IRequestHandler<ChangeOrgan
 
         if (organization is null)
             throw new ApplicationException("Organization not found");
-        
-        organization.ChangeStatus(request.status);
+
+        switch (request.status)
+        {
+            case EOrganizationStatus.Active:
+                organization.Activate();
+                break;
+            case EOrganizationStatus.Blocked:
+                organization.Block();
+                break;
+            default:
+                throw new ApplicationException("Unknown status, status not changed");
+        }
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         return request.organizationId;

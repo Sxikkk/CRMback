@@ -18,18 +18,18 @@ public class UpdateAssignedToEssenceCommandHandler: IRequestHandler<UpdateAssign
 
     public async Task<Guid> Handle(UpdateAssignedToEssenceCommand request, CancellationToken cancellationToken)
     {
-        var existingEssence = await _repository.GetByIdAsync(request.EssenceId, cancellationToken);
+        var existingEssence = await _repository.GetByIdAsync(request.essenceId, cancellationToken);
         
         if (existingEssence is null)
             throw new ApplicationException("Essence not found");
         
-        if (request.AssignedToId is null)
-            existingEssence.AssignTo(request.AssignedToId);
+        if (request.assignedToId is null)
+            existingEssence.AssignTo(request.assignedToId);
             
-        if (await _userRepository.IsExistByIdAsync((Guid)request.AssignedToId!, cancellationToken) is false)
+        if (await _userRepository.IsExistByIdAsync((Guid)request.assignedToId!, cancellationToken) is false)
             throw new ApplicationException("User to assign not found");
 
-        existingEssence.AssignTo(request.AssignedToId);
+        existingEssence.AssignTo(request.assignedToId);
         
         _repository.Update(existingEssence);
         await _unitOfWork.SaveChangesAsync(cancellationToken);

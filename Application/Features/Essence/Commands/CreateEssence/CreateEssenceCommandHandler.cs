@@ -26,10 +26,17 @@ public class CreateEssenceCommandHandler : IRequestHandler<CreateEssenceCommand,
         if (_requestContext.UserId is null)
             throw new ApplicationException("User not found");
 
-        var essence = Domain.Entities.Essence.Create(request.Title, (Guid)_requestContext.UserId);
+        var rawCreator = await _userRepository.GetUserByIdAsync((Guid)_requestContext.UserId, cancellationToken);
+        
+        if (rawCreator is null)
+            throw new ApplicationException("Failed to create Essence. Creator not found");
+
+        if (rawCreator?.OrganizationId is null)
+            throw new ApplicationException("Failed to create Essence. Organization not found");
+        
+        var essence = Domain.Entities.Essence.Create(request.Title, (Guid)_requestContext.UserId, (Guid)rawCreator.OrganizationId);
         await _repository.AddAsync(essence, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
-        var rawCreator = await _userRepository.GetUserByIdAsync(essence.CreatedById, cancellationToken);
         var creator = new UserDto
         {
             Id = rawCreator!.Id,

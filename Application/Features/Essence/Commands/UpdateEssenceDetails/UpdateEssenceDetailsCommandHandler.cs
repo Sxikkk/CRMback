@@ -17,15 +17,15 @@ public class UpdateEssenceDetailsCommandHandler: IRequestHandler<UpdateEssenceDe
 
     public async Task<Guid> Handle(UpdateEssenceDetailsCommand request, CancellationToken cancellationToken)
     {
-        var existingEssence = await _repository.GetByIdAsync(request.Id, cancellationToken);
+        var existingEssence = await _repository.GetByIdAsync(request.id, cancellationToken);
 
         if (existingEssence is null)
             throw new ApplicationException("Essence not found");
 
-        if (request.Description is not null)
-            existingEssence.UpdateDescription(request.Description);
+        if (request.description is not null)
+            existingEssence.UpdateDescription(request.description);
     
-        existingEssence.UpdateTitle(request.Title);
+        existingEssence.UpdateTitle(request.title);
         
         _repository.Update(existingEssence);
         await _unitOfWork.SaveChangesAsync(cancellationToken);

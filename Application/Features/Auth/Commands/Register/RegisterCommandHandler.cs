@@ -68,7 +68,9 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, TokenDto>
             tokens.refreshExpires,
             ip
         );
-
+        
+        user.AssignToOrganization(request.OrganizationId);
+        
         await _userRepository.AddUserAsync(user, cancellationToken);
         await _refreshTokenRepository.AddTokenAsync(refreshToken, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);

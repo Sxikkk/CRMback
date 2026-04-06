@@ -27,6 +27,11 @@ public class UserRepository : IUserRepository
     public async Task<User?> GetUserByUsernameAndPasswordAsync(string username, string hashPassword, CancellationToken cancellationToken) =>
         await _context.Users.FirstOrDefaultAsync(u => u.UserName == username && u.PasswordHash == hashPassword, cancellationToken);
     public async Task<IEnumerable<User>> GetAllUsersAsync(CancellationToken cancellationToken) => await _context.Users.ToListAsync(cancellationToken: cancellationToken);
+    public async Task<IEnumerable<User>> GetAllUsersByOrgIdAsync(Guid organizationId, CancellationToken cancellationToken)
+    {
+        return await _context.Users.Where(u => u.OrganizationId == organizationId).Distinct().ToListAsync(cancellationToken: cancellationToken);
+    }
+
     public async Task AddUserAsync(User user, CancellationToken cancellationToken) => await _context.Users.AddAsync(user, cancellationToken);
     public async Task<bool> IsExistByIdAsync(Guid userId, CancellationToken cancellationToken) => await _context.Users.AnyAsync(u => u.Id == userId, cancellationToken);
     public async Task<bool> IsExistByUsernameAsync(string username, CancellationToken cancellationToken) => await _context.Users.AnyAsync(u => u.UserName == username, cancellationToken);

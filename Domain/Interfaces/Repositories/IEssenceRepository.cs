@@ -12,22 +12,14 @@ public interface IEssenceRepository
     Task<IReadOnlyList<Essence>> GetByAssignedUserAsync(Guid userId, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<Essence>> GetByStatusAsync(EEssenceStatus status, CancellationToken cancellationToken = default);
-
-    Task<IReadOnlyList<Essence>> GetAllAsync(CancellationToken cancellationToken = default);
-
+    
     Task AddAsync(Essence essence, CancellationToken cancellationToken = default);
 
     void Update(Essence essence);
 
     void Remove(Essence essence);
-
-    Task<IReadOnlyList<Essence>> GetUserTasksAsync(
-        Guid userId,
-        EEssenceStatus? status,
-        EEssencePriority? priority,
-        CancellationToken cancellationToken = default);
-    
     Task<IReadOnlyDictionary<EEssenceStatus, int>> GetStatusStatisticByCreatorSqlAsync(                                                                                                                                                                                                                       
         Guid creatorId,                                                                                                                                                                                                                                                                                       
         CancellationToken cancellationToken = default);         
+    Task<IReadOnlyList<Essence>> GetByOrganizationIdAsync(Guid organizationId, CancellationToken cancellationToken = default);
 }

@@ -15,6 +15,7 @@ public class User
     public string PasswordHash { get; private set; }
     public ERole Role { get; private set; }
     public ICollection<RefreshToken> RefreshTokens { get; private set; } = null!;
+
     public Guid? OrganizationId { get; private set; }
     public Organization? Organization { get; private set; }
     private User() { }
@@ -50,6 +51,12 @@ public class User
     {
         if (string.IsNullOrWhiteSpace(name)) throw new DomainException("Name cannot be empty");
         Name = name.Trim();
+    }
+
+    public void ChangeSurname(string surname)
+    {
+        if (string.IsNullOrWhiteSpace(surname)) throw new DomainException("Surname cannot be empty");
+        Surname = surname.Trim();
     }
 
     public void ChangeRole(ERole role)

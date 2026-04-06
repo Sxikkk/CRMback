@@ -17,13 +17,13 @@ public class UpdateStatusPriorityCommandHandler: IRequestHandler<UpdateStatusPri
 
     public async Task<Guid> Handle(UpdateStatusPriorityCommand request, CancellationToken cancellationToken)
     {
-        var existingEssence = await _repository.GetByIdAsync(request.EssenceId, cancellationToken);
+        var existingEssence = await _repository.GetByIdAsync(request.essenceId, cancellationToken);
 
         if (existingEssence is null)
             throw new ApplicationException("Essence not found");
 
-        if (request.Priority is not null)
-            existingEssence.ChangePriority((EEssencePriority)request.Priority);
+        if (request.priority is not null)
+            existingEssence.ChangePriority((EEssencePriority)request.priority);
         
         _repository.Update(existingEssence);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
