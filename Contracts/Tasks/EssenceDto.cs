@@ -1,5 +1,6 @@
 ﻿using Contracts.User;
 using Domain.Enums;
+using Domain.ValueObjects;
 
 namespace Contracts.Tasks;
 
@@ -29,4 +30,5 @@ public class EssenceDto
     public TimeSpan TimeTracked { get; set; }
     public UserDto Creator { get; set; }
     public UserDto? Executor { get; set; }
+    public decimal? Price { get; set; }
 }

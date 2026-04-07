@@ -78,6 +78,7 @@ public class GetEssenceByUserIdQueryHandler : IRequestHandler<GetEssenceByUserId
             CompletedAtUtc = essence.CompletedAtUtc,
             TimeTracked = essence.TotalTime,
             Creator = creator,
+            Price = essence.EssencePrice?.Value,
             Stages = essence.Stages.Select(s => new StageDto(s.Id, s.EssenceId, s.Name, s.Order, s.Status,
                 s.StartedAt, s.CompletedAt, s.EstimatedDuration, s.TimeSpent)).ToArray(),
             Executor = essence.AssignedToId.HasValue &&

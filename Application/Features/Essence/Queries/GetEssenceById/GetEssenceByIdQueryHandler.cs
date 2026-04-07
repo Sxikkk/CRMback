@@ -63,7 +63,8 @@ public class GetEssenceByIdQueryHandler : IRequestHandler<GetEssenceByIdQuery, E
             TimeTracked = essence.TotalTime,
             Creator = creator,
             Executor = executor,
-            Stages = stagesDto
+            Stages = stagesDto,
+            Price = essence.EssencePrice?.Value
         };
     }
 }

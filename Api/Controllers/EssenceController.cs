@@ -3,9 +3,11 @@ using Application.Features.Essence.Commands.DeleteEssence;
 using Application.Features.Essence.Commands.UpdateAssignedToEssence;
 using Application.Features.Essence.Commands.UpdateEssenceDetails;
 using Application.Features.Essence.Commands.UpdateEssenceDueDate;
+using Application.Features.Essence.Commands.UpdateEssencePrice;
 using Application.Features.Essence.Commands.UpdateStatusPriority;
 using Application.Features.Essence.Queries.GetEssenceById;
 using Application.Features.Essence.Queries.GetEssenceByUserId;
+using Contracts.Tasks;
 using Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -58,38 +60,50 @@ public class EssenceController : ControllerBase
         return Ok(response);
     }
 
-    [HttpPut("{essenceId:guid}/update/details")]
-    public async Task<IActionResult> UpdateEssenceDetailsAsync([FromRoute] Guid essenceId, [FromBody] string title,
-        string? description,
+    [HttpPut("{essenceId:guid}/update/price")]
+    public async Task<IActionResult> UpdateEssencePriceAsync([FromRoute] Guid essenceId, [FromBody] UpdateEssencePriceRequest request,
         CancellationToken cancellationToken = default)
     {
-        var response = await _mediator.Send(new UpdateEssenceDetailsCommand(essenceId, title, description),
+        var response = await _mediator.Send(new UpdateEssencePriceCommand(essenceId, request.Price),
             cancellationToken);
         return Ok(response);
     }
 
     [HttpPut("{essenceId:guid}/update/due-date")]
-    public async Task<IActionResult> UpdateEssenceDueDateAsync([FromRoute] Guid essenceId, [FromBody] DateTime dueDate,
+    public async Task<IActionResult> UpdateEssenceDueDateAsync([FromRoute] Guid essenceId, [FromBody] UpdateEssenceDueDateRequest request,
         CancellationToken cancellationToken = default)
     {
-        var response = await _mediator.Send(new UpdateEssenceDueDateCommand(essenceId, dueDate), cancellationToken);
+        var response = await _mediator.Send(new UpdateEssenceDueDateCommand(essenceId, request.DueDate), cancellationToken);
+        return Ok(response);
+    }
+
+    [HttpPut("{essenceId:guid}/update/details")]
+    public async Task<IActionResult> UpdateEssenceDetailsAsync([FromRoute] Guid essenceId,
+        [FromBody] UpdateEssenceDetailsRequest request, CancellationToken cancellationToken = default)
+    {
+        var response = await _mediator.Send(
+            new UpdateEssenceDetailsCommand(essenceId, request.Title, request.Description),
+            cancellationToken);
         return Ok(response);
     }
 
     [HttpPut("{essenceId:guid}/update/priority")]
     public async Task<IActionResult> UpdateEssenceStatusAsync([FromRoute] Guid essenceId,
-        [FromBody] EEssencePriority priority,
+        [FromBody] UpdateEssenceStatusRequest request,
         CancellationToken cancellationToken = default)
     {
-        var response = await _mediator.Send(new UpdateStatusPriorityCommand(essenceId, priority), cancellationToken);
+        var response = await _mediator.Send(new UpdateStatusPriorityCommand(essenceId, request.Priority),
+            cancellationToken);
         return Ok(response);
     }
 
     [HttpPut("{essenceId:guid}/update/assign")]
-    public async Task<IActionResult> UpdateEssenceAssignAsync([FromRoute] Guid essenceId, [FromBody] Guid assignmentId,
+    public async Task<IActionResult> UpdateEssenceAssignAsync([FromRoute] Guid essenceId,
+        [FromBody] UpdateEssenceAssignRecord request,
         CancellationToken cancellationToken = default)
     {
-        var response = await _mediator.Send(new UpdateAssignedToEssenceCommand(essenceId, assignmentId), cancellationToken);
+        var response = await _mediator.Send(new UpdateAssignedToEssenceCommand(essenceId, request.AssignedToId),
+            cancellationToken);
         return Ok(response);
     }
 

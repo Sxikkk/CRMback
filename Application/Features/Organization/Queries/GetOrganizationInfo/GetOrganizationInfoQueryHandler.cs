@@ -52,6 +52,7 @@ public class GetOrganizationInfoQueryHandler : IRequestHandler<GetOrganizationIn
             Status = e.Status,
             TimeTracked = e.TotalTime,
             Title = e.Title,
+            Price = e.EssencePrice?.Value,
             Stages = e.Stages.Select(s => new StageDto(
                 s.Id,
                 s.EssenceId,

@@ -73,7 +73,8 @@ public class CreateEssenceCommandHandler : IRequestHandler<CreateEssenceCommand,
             TimeTracked = essence.TotalTime,
             Creator = creator,
             Executor = executor,
-            Stages = []
+            Stages = [],
+            Price = essence.EssencePrice?.Value
         };
     }
 }

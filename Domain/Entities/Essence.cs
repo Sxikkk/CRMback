@@ -120,6 +120,11 @@ public class Essence
             CompletedAtUtc = DateTime.UtcNow;
     }
 
+    public void SetPrice(EssencePrice? price)
+    {
+        EssencePrice = price;
+    }
+
     public void ReopenStage(Guid stageId)
     {
         var stage = GetStageOrThrow(stageId);
