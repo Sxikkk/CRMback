@@ -1,4 +1,6 @@
-﻿using Microsoft.OpenApi;
+﻿using Api.Services;
+using Application.Common.Interfaces;
+using Microsoft.OpenApi;
 
 namespace Api;
 
@@ -8,7 +10,8 @@ public static class DependencyInjection
     {
         services.AddControllers();
         services.AddEndpointsApiExplorer();
-
+        services.AddScoped<IRequestContext, RequestContext>();
+        services.AddScoped<IFileStorageService, FileStorageService>();
         services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });

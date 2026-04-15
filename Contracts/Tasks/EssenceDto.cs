@@ -1,10 +1,11 @@
-﻿using Contracts.User;
+﻿using Contracts.EssenceAttachment;
+using Contracts.User;
 using Domain.Enums;
 using Domain.ValueObjects;
 
 namespace Contracts.Tasks;
 
-public class EssenceDto
+public record EssenceDto
 {
     public Guid Id { get; set; }
 
@@ -28,7 +29,8 @@ public class EssenceDto
     public DateTime? CompletedAtUtc { get; set; }
 
     public TimeSpan TimeTracked { get; set; }
-    public UserDto Creator { get; set; }
+    public UserDto Creator { get; set; } = null!;
     public UserDto? Executor { get; set; }
     public decimal? Price { get; set; }
+    public EssenceAttachmentDto[] Attachments { get; set; } = [];
 }

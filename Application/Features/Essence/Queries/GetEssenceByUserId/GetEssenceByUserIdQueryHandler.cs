@@ -1,4 +1,5 @@
 ﻿using Application.Common.Interfaces;
+using Contracts.EssenceAttachment;
 using Contracts.Tasks;
 using Contracts.User;
 using Domain.Interfaces.Repositories;
@@ -10,14 +11,16 @@ public class GetEssenceByUserIdQueryHandler : IRequestHandler<GetEssenceByUserId
 {
     private readonly IEssenceRepository _repository;
     private readonly IUserRepository _userRepository;
+    private readonly IEssenceAttachmentRepository _attachmentRepository;
     private readonly IRequestContext _context;
 
     public GetEssenceByUserIdQueryHandler(IEssenceRepository repository, IRequestContext context,
-        IUserRepository userRepository)
+        IUserRepository userRepository, IEssenceAttachmentRepository attachmentRepository)
     {
         _repository = repository;
         _context = context;
         _userRepository = userRepository;
+        _attachmentRepository = attachmentRepository;
     }
 
     public async Task<IReadOnlyList<EssenceDto>> Handle(GetEssenceByUserIdQuery request,
@@ -64,6 +67,40 @@ public class GetEssenceByUserIdQueryHandler : IRequestHandler<GetEssenceByUserId
             }
         }
 
+        var attachments = new Dictionary<Guid, List<EssenceAttachmentDto>>();
+        foreach (var essence in essences)
+        {
+            attachments[essence.Id] = [];
+            var rawAttachments = await _attachmentRepository.GetByEssenceIdAsync(essence.Id, cancellationToken);
+
+            foreach (var rawAtt in rawAttachments)
+            {
+                var uploader = await _userRepository.GetUserByIdAsync(rawAtt.UploadedById, cancellationToken);
+
+                if (uploader is null)
+                    throw new ApplicationException("User with such id doesn't exist");
+                    
+                attachments[essence.Id].Add(new EssenceAttachmentDto
+                {
+                    Id = rawAtt.Id,
+                    ContentType = rawAtt.ContentType,
+                    FileName = rawAtt.FileName,
+                    FilePath = rawAtt.FilePath,
+                    Size = rawAtt.Size,
+                    UploadedBy = new UserDto
+                    {
+                        Id = uploader.Id,
+                        Email = uploader.Email,
+                        Name = uploader.Name,
+                        Phone = uploader.Phone,
+                        Surname = uploader.Surname,
+                        UserName = uploader.UserName,
+                    },
+                    UploadedAtUtc = rawAtt.UploadedAtUtc,
+                });
+            }
+        }
+
         return essences.Select(essence => new EssenceDto
         {
             Id = essence.Id,
@@ -84,7 +121,8 @@ public class GetEssenceByUserIdQueryHandler : IRequestHandler<GetEssenceByUserId
             Executor = essence.AssignedToId.HasValue &&
                        executors.TryGetValue(essence.AssignedToId.Value, out var executor)
                 ? executor
-                : null
+                : null,
+            Attachments = attachments[essence.Id].ToArray(),
         }).ToList();
     }
 }

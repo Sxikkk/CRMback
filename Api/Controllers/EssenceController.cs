@@ -1,5 +1,6 @@
 ﻿using Application.Features.Essence.Commands.CreateEssence;
 using Application.Features.Essence.Commands.DeleteEssence;
+using Application.Features.Essence.Commands.DeleteEssenceAttachment;
 using Application.Features.Essence.Commands.UpdateAssignedToEssence;
 using Application.Features.Essence.Commands.UpdateEssenceDetails;
 using Application.Features.Essence.Commands.UpdateEssenceDueDate;
@@ -7,8 +8,8 @@ using Application.Features.Essence.Commands.UpdateEssencePrice;
 using Application.Features.Essence.Commands.UpdateStatusPriority;
 using Application.Features.Essence.Queries.GetEssenceById;
 using Application.Features.Essence.Queries.GetEssenceByUserId;
+using Application.Features.EssenceAttachment.Commands.AddAttachment;
 using Contracts.Tasks;
-using Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -43,7 +44,6 @@ public class EssenceController : ControllerBase
         }, cancellationToken);
         return Ok(response);
     }
-
 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetEssenceByIdAsync(Guid id, CancellationToken cancellationToken = default)

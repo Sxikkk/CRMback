@@ -24,7 +24,7 @@ public class UpdateEssencePriceCommandHandler: IRequestHandler<UpdateEssencePric
 
         if (request.price is not null)
         {
-            var newPrice = new EssencePrice();
+            var newPrice = new EssencePrice((decimal)request.price);
             essence.SetPrice(newPrice);
         }
         else

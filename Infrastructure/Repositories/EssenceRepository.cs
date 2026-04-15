@@ -113,4 +113,164 @@ public class EssenceRepository: IEssenceRepository
     {
         return await _context.Essences.Where(e => e.CreatedByOrganization == organizationId).ToListAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyDictionary<EEssenceStatus, int>> GetStatusStatisticByOrganizationAsync(
+        Guid organizationId,
+        DateTime fromUtc,
+        DateTime toUtc,
+        CancellationToken cancellationToken = default)
+    {
+        var grouped = await BuildOrganizationPeriodQuery(organizationId, fromUtc, toUtc)
+            .Select(e => new
+            {
+                Status =
+                    !e.Stages.Any() ? EEssenceStatus.Waiting :
+                    e.Stages.All(s => s.Status == EEssenceStatus.Completed) ? EEssenceStatus.Completed :
+                    e.Stages.Any(s => s.Status == EEssenceStatus.InProgress) ? EEssenceStatus.InProgress :
+                    e.Stages.Any(s => s.Status == EEssenceStatus.Paused) ? EEssenceStatus.Paused :
+                    EEssenceStatus.Waiting
+            })
+            .GroupBy(x => x.Status)
+            .Select(g => new { Status = g.Key, Count = g.Count() })
+            .ToListAsync(cancellationToken);
+
+        var result = new Dictionary<EEssenceStatus, int>
+        {
+            [EEssenceStatus.Waiting] = 0,
+            [EEssenceStatus.Paused] = 0,
+            [EEssenceStatus.InProgress] = 0,
+            [EEssenceStatus.Completed] = 0
+        };
+
+        foreach (var row in grouped)
+            result[row.Status] = row.Count;
+
+        return result;
+    }
+
+    public async Task<IReadOnlyDictionary<EEssencePriority, int>> GetPriorityStatisticByOrganizationAsync(
+        Guid organizationId,
+        DateTime fromUtc,
+        DateTime toUtc,
+        CancellationToken cancellationToken = default)
+    {
+        var grouped = await BuildOrganizationPeriodQuery(organizationId, fromUtc, toUtc)
+            .GroupBy(e => e.Priority)
+            .Select(g => new { Priority = g.Key, Count = g.Count() })
+            .ToListAsync(cancellationToken);
+
+        var result = new Dictionary<EEssencePriority, int>
+        {
+            [EEssencePriority.Normal] = 0,
+            [EEssencePriority.Warning] = 0,
+            [EEssencePriority.Danger] = 0
+        };
+
+        foreach (var row in grouped)
+            result[row.Priority] = row.Count;
+
+        return result;
+    }
+
+    public async Task<IReadOnlyList<(DateTime PeriodStartUtc, int Created, int Completed)>> GetTrendStatisticByOrganizationAsync(
+        Guid organizationId,
+        DateTime fromUtc,
+        DateTime toUtc,
+        EAnalyticsGroupBy groupBy,
+        CancellationToken cancellationToken = default)
+    {
+        var entries = await BuildOrganizationPeriodQuery(organizationId, fromUtc, toUtc)
+            .Select(e => new { e.CreatedAtUtc, e.CompletedAtUtc })
+            .ToListAsync(cancellationToken);
+
+        var createdByBucket = entries
+            .GroupBy(e => GetBucketStart(e.CreatedAtUtc, groupBy))
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        var completedByBucket = entries
+            .Where(e => e.CompletedAtUtc.HasValue && e.CompletedAtUtc.Value >= fromUtc && e.CompletedAtUtc.Value <= toUtc)
+            .GroupBy(e => GetBucketStart(e.CompletedAtUtc!.Value, groupBy))
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        return EnumerateBuckets(fromUtc, toUtc, groupBy)
+            .Select(bucket => (
+                PeriodStartUtc: bucket,
+                Created: createdByBucket.GetValueOrDefault(bucket, 0),
+                Completed: completedByBucket.GetValueOrDefault(bucket, 0)))
+            .ToList();
+    }
+
+    public async Task<(int Total, int Overdue, int OverdueNormal, int OverdueWarning, int OverdueDanger)>
+        GetOverdueStatisticByOrganizationAsync(
+            Guid organizationId,
+            DateTime fromUtc,
+            DateTime toUtc,
+            CancellationToken cancellationToken = default)
+    {
+        var rows = await BuildOrganizationPeriodQuery(organizationId, fromUtc, toUtc)
+            .Select(e => new
+            {
+                e.DueDate,
+                e.Priority,
+                Status =
+                    !e.Stages.Any() ? EEssenceStatus.Waiting :
+                    e.Stages.All(s => s.Status == EEssenceStatus.Completed) ? EEssenceStatus.Completed :
+                    e.Stages.Any(s => s.Status == EEssenceStatus.InProgress) ? EEssenceStatus.InProgress :
+                    e.Stages.Any(s => s.Status == EEssenceStatus.Paused) ? EEssenceStatus.Paused :
+                    EEssenceStatus.Waiting
+            })
+            .ToListAsync(cancellationToken);
+
+        var now = DateTime.UtcNow;
+        var overdueRows = rows.Where(r => r.DueDate.HasValue && r.DueDate.Value < now && r.Status != EEssenceStatus.Completed).ToList();
+
+        return (
+            Total: rows.Count,
+            Overdue: overdueRows.Count,
+            OverdueNormal: overdueRows.Count(r => r.Priority == EEssencePriority.Normal),
+            OverdueWarning: overdueRows.Count(r => r.Priority == EEssencePriority.Warning),
+            OverdueDanger: overdueRows.Count(r => r.Priority == EEssencePriority.Danger));
+    }
+
+    private IQueryable<Essence> BuildOrganizationPeriodQuery(Guid organizationId, DateTime fromUtc, DateTime toUtc)
+    {
+        return _context.Essences
+            .AsNoTracking()
+            .Where(e => e.CreatedByOrganization == organizationId && e.CreatedAtUtc >= fromUtc && e.CreatedAtUtc <= toUtc);
+    }
+
+    private static DateTime GetBucketStart(DateTime dateTimeUtc, EAnalyticsGroupBy groupBy)
+    {
+        var date = dateTimeUtc.Date;
+        var offsetToMonday = ((int)date.DayOfWeek + 6) % 7;
+
+        return groupBy switch
+        {
+            EAnalyticsGroupBy.Day => date,
+            EAnalyticsGroupBy.Week => date.AddDays(-offsetToMonday),
+            EAnalyticsGroupBy.Month => new DateTime(date.Year, date.Month, 1, 0, 0, 0, DateTimeKind.Utc),
+            _ => date
+        };
+    }
+
+    private static IReadOnlyList<DateTime> EnumerateBuckets(DateTime fromUtc, DateTime toUtc, EAnalyticsGroupBy groupBy)
+    {
+        var buckets = new List<DateTime>();
+        var current = GetBucketStart(fromUtc, groupBy);
+        var last = GetBucketStart(toUtc, groupBy);
+
+        while (current <= last)
+        {
+            buckets.Add(current);
+            current = groupBy switch
+            {
+                EAnalyticsGroupBy.Day => current.AddDays(1),
+                EAnalyticsGroupBy.Week => current.AddDays(7),
+                EAnalyticsGroupBy.Month => current.AddMonths(1),
+                _ => current.AddDays(1)
+            };
+        }
+
+        return buckets;
+    }
 }

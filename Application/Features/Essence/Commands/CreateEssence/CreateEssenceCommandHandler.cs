@@ -74,7 +74,8 @@ public class CreateEssenceCommandHandler : IRequestHandler<CreateEssenceCommand,
             Creator = creator,
             Executor = executor,
             Stages = [],
-            Price = essence.EssencePrice?.Value
+            Price = essence.EssencePrice?.Value,
+            Attachments = [],
         };
     }
 }

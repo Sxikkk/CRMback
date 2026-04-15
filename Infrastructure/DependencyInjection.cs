@@ -32,6 +32,7 @@ public static class DependencyInjection
         services.AddScoped<IEssenceRepository, EssenceRepository>();
         services.AddScoped<IOrganizationRepository, OrganizationRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IEssenceAttachmentRepository, EssenceAttachmentRepository>();
         
         return services;
     }

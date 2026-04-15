@@ -24,8 +24,6 @@ builder.Services.AddPresentation();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddScoped<IRequestContext, RequestContext>();
-
 builder.Services.AddControllers();    
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSignalR();
@@ -45,7 +43,6 @@ if (app.Environment.IsDevelopment())
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.Migrate();
 }
-
 
 app.UseHttpsRedirection();
 app.UseAuthentication();

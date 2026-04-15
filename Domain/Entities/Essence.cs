@@ -25,8 +25,12 @@ public class Essence
     public EssencePrice? EssencePrice { get; private set; }
     public IReadOnlyCollection<EssenceStage> Stages => _stages.AsReadOnly();
 
-    private readonly List<EssenceStage> _stages = new();
+    private readonly List<EssenceStage> _stages = [];
 
+    public IReadOnlyCollection<EssenceAttachment> Attachments => _attachments.AsReadOnly();
+
+    private readonly List<EssenceAttachment> _attachments = [];
+    
     private Essence() { }
 
     public static Essence Create(string title, Guid createdById, Guid organizationId, string? description = null)
@@ -122,7 +126,7 @@ public class Essence
 
     public void SetPrice(EssencePrice? price)
     {
-        EssencePrice = price;
+        EssencePrice = price is null ? null : price.Value;
     }
 
     public void ReopenStage(Guid stageId)
@@ -187,5 +191,17 @@ public class Essence
             return EEssenceStatus.Paused;
 
         return EEssenceStatus.Waiting;
+    }
+    
+    public void AddAttachment(EssenceAttachment attachment)
+    {
+        _attachments.Add(attachment);
+    }
+
+    public void RemoveAttachment(Guid attachmentId)
+    {
+        var attachment = _attachments.FirstOrDefault(a => a.Id == attachmentId);
+        if (attachment != null)
+            _attachments.Remove(attachment);
     }
 }

@@ -25,7 +25,7 @@ public class GetOrganizationInfoQueryHandler : IRequestHandler<GetOrganizationIn
         var orgInfo = await _organizationRepository.GetOrganizationByIdAsync(request.organizationId, cancellationToken);
         if (orgInfo is null) throw new ApplicationException("Organization not found");
 
-        var users = await _userRepository.GetAllUsersByOrgIdAsync(request.organizationId, cancellationToken);
+        var users = (await _userRepository.GetAllUsersByOrgIdAsync(request.organizationId, cancellationToken)).ToList();
         var userDict = users.ToDictionary(u => u.Id, u => new UserDto
         {
             Id = u.Id, Name = u.Name, Surname = u.Surname, Email = u.Email,

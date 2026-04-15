@@ -2,13 +2,15 @@
 
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
-        <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
       <UserSecretsId>ac4047d8-bf2f-4e7e-be7b-a7d10f8595a4</UserSecretsId>
   </PropertyGroup>
 
     <ItemGroup>
       <Folder Include="Hubs\" />
+      <Folder Include="wwwroot\" />
+      <Folder Include="wwwroot\attachments\essence\" />
     </ItemGroup>
 
     <ItemGroup>

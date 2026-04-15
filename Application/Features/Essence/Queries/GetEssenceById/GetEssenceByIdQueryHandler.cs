@@ -1,4 +1,5 @@
-﻿using Contracts.Tasks;
+﻿using Contracts.EssenceAttachment;
+using Contracts.Tasks;
 using Contracts.User;
 using Domain.Interfaces.Repositories;
 using MediatR;
@@ -8,12 +9,14 @@ namespace Application.Features.Essence.Queries.GetEssenceById;
 public class GetEssenceByIdQueryHandler : IRequestHandler<GetEssenceByIdQuery, EssenceDto>
 {
     private readonly IEssenceRepository _essenceRepository;
+    private readonly IEssenceAttachmentRepository _essenceAttachmentRepository;
     private readonly IUserRepository _userRepository;
 
-    public GetEssenceByIdQueryHandler(IEssenceRepository essenceRepository, IUserRepository userRepository)
+    public GetEssenceByIdQueryHandler(IEssenceRepository essenceRepository, IUserRepository userRepository, IEssenceAttachmentRepository essenceAttachmentRepository)
     {
         _essenceRepository = essenceRepository;
         _userRepository = userRepository;
+        _essenceAttachmentRepository = essenceAttachmentRepository;
     }
 
     public async Task<EssenceDto> Handle(GetEssenceByIdQuery request, CancellationToken cancellationToken)
@@ -48,6 +51,36 @@ public class GetEssenceByIdQueryHandler : IRequestHandler<GetEssenceByIdQuery, E
         var stagesDto = essence.Stages.Select(s => new StageDto(s.Id, s.EssenceId, s.Name, s.Order, s.Status,
             s.StartedAt, s.CompletedAt, s.EstimatedDuration, s.TimeSpent)).ToArray();
 
+        var rawAttachments = (await _essenceAttachmentRepository.GetByEssenceIdAsync(essence.Id, cancellationToken)).ToList();
+
+        var uploaders = new Dictionary<Guid, UserDto>();
+        foreach (var attachment in rawAttachments)
+        {
+            var rawUploader = await _userRepository.GetUserByIdAsync(attachment.UploadedById, cancellationToken);
+            if (rawUploader != null)
+            {
+                uploaders[attachment.Id] = new UserDto
+                {
+                    Id = rawUploader.Id,
+                    Email = rawUploader.Email,
+                    Name = rawUploader.Name,
+                    Phone = rawUploader.Phone,
+                    Surname = rawUploader.Surname,
+                    UserName = rawUploader.UserName,
+                };
+            }
+        }
+        
+        var attachments = rawAttachments.Select(a => new EssenceAttachmentDto
+        {
+            FilePath = a.FilePath,
+            FileName = a.FileName,
+            ContentType = a.ContentType,
+            Id = a.Id,
+            Size = a.Size,
+            UploadedBy = uploaders[a.Id]
+        }).ToArray();
+        
         return new EssenceDto
         {
             Id = essence.Id,
@@ -64,7 +97,8 @@ public class GetEssenceByIdQueryHandler : IRequestHandler<GetEssenceByIdQuery, E
             Creator = creator,
             Executor = executor,
             Stages = stagesDto,
-            Price = essence.EssencePrice?.Value
+            Price = essence.EssencePrice?.Value,
+            Attachments = attachments,
         };
     }
 }
